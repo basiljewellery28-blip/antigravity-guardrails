@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Installs Antigravity pre-commit guardrail hooks into the local Git repository.
 .DESCRIPTION
@@ -38,3 +38,4 @@ Write-Host "✅ Pre-commit hook installed to: $targetHook" -ForegroundColor Gree
 Write-Host "💡 Any 'git commit' will now automatically run Secret Sentinel & OWASP checks before completing." -ForegroundColor Yellow
 Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 exit 0
+

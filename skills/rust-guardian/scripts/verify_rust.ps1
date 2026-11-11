@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Automated Rust verification script for Antigravity skills.
 .DESCRIPTION
@@ -58,3 +58,4 @@ try {
 finally {
     Pop-Location
 }
+

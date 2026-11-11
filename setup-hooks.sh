@@ -37,3 +37,4 @@ chmod +x "${TARGET_HOOK}"
 echo -e "${GREEN}✅ Pre-commit hook installed to: ${TARGET_HOOK}${NC}"
 echo -e "${YELLOW}💡 Any 'git commit' will now automatically run Secret Sentinel & OWASP checks before completing.${NC}"
 echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
+

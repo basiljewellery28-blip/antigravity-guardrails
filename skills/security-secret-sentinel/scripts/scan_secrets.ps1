@@ -32,7 +32,7 @@ if (Test-Path ".env") {
     $isIgnored = $false
     if (Test-Path ".gitignore") {
         $gitignore = Get-Content ".gitignore"
-        if ($gitignore -match "(^|\n)\.env(\n|$)") {
+        if ($gitignore -match '(?m)^\.env\s*$') {
             $isIgnored = $true
         }
     }
@@ -50,7 +50,7 @@ if (Test-Path ".env") {
 $scanExtensions = @("*.ts", "*.tsx", "*.js", "*.jsx", "*.py", "*.cs", "*.java", "*.go", "*.rs", "*.json", "*.yaml", "*.yml", "*.env.example")
 
 $files = Get-ChildItem -Path $ProjectPath -Include $scanExtensions -Recurse -File |
-    Where-Object { $_.FullName -notmatch "node_modules|\.git|obj|bin|dist|vendor|research" }
+    Where-Object { $_.FullName -notmatch 'node_modules|\.git|obj|bin|dist|vendor|research' }
 
 foreach ($file in $files) {
     $lines = [System.IO.File]::ReadAllLines($file.FullName)

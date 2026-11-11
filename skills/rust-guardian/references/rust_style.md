@@ -35,3 +35,4 @@ This reference distills the Rust API Guidelines and production Rust best practic
 
 - **Pass by Reference**: Use `&str` instead of `&String`, `&[T]` instead of `&Vec<T>`.
 - **Cow (Clone on Write)**: Use `std::borrow::Cow<'a, str>` when data may either be borrowed or owned, avoiding unnecessary string allocations.
+

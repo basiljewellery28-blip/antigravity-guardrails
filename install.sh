@@ -47,3 +47,4 @@ echo ""
 echo -e "${GREEN}✅ All ${COUNT} skills installed globally with success!${NC}"
 echo -e "${YELLOW}💡 Gemini / Antigravity will now automatically discover and use these skills across all projects on your machine.${NC}"
 echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
+

@@ -79,3 +79,4 @@ You must run automated static analysis, clippy, and unit/integration tests befor
 In your response to the user, provide:
 1. **Summary of Changes**: What structs, enums, traits, and functions were added or updated.
 2. **Verification Evidence**: The exact command executed and the passing output (e.g. `test result: ok. 14 passed; 0 failed; finished in 0.42s`).
+

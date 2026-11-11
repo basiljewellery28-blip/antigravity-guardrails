@@ -24,12 +24,12 @@ if (-not (Test-Path $globalSkillsDir)) {
     New-Item -ItemType Directory -Path $globalSkillsDir -Force | Out-Null
 }
 
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+$scriptDir = $PSScriptRoot
 if (-not $scriptDir) {
     $scriptDir = (Get-Location).Path
 }
 
-$localSkillsDir = Join-Path $scriptDir "skills"
+$localSkillsDir = Join-Path (Resolve-Path $scriptDir) "skills"
 
 if (-not (Test-Path $localSkillsDir)) {
     Write-Host "❌ Could not find local 'skills' directory in $scriptDir" -ForegroundColor Red

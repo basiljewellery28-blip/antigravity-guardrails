@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Automated debug tag cleaner for Bug Hunter.
 .DESCRIPTION
@@ -20,7 +20,7 @@ $filesWithTags = @()
 Write-Host "🔍 [Bug Hunter] Scanning for temporary debug tags ([DEBUG-*])..." -ForegroundColor Cyan
 
 $files = Get-ChildItem -Path $ProjectPath -Include $sourceExtensions -Recurse -File -Exclude "clean_debug_tags.ps1" |
-    Where-Object { $_.FullName -notmatch "node_modules|\.git|obj|bin|dist|vendor" }
+    Where-Object { $_.FullName -notmatch 'node_modules|\.git|obj|bin|dist|vendor' }
 
 foreach ($file in $files) {
     $content = [System.IO.File]::ReadAllLines($file.FullName)

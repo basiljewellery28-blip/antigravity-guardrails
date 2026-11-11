@@ -28,7 +28,7 @@ $sourceExtensions = @("*.ts", "*.tsx", "*.js", "*.jsx", "*.py", "*.cs", "*.java"
 $violations = @()
 
 $files = Get-ChildItem -Path $ProjectPath -Include $sourceExtensions -Recurse -File |
-    Where-Object { $_.FullName -notmatch "node_modules|\.git|obj|bin|dist|vendor|research" }
+    Where-Object { $_.FullName -notmatch 'node_modules|\.git|obj|bin|dist|vendor|research' }
 
 foreach ($file in $files) {
     $lines = [System.IO.File]::ReadAllLines($file.FullName)

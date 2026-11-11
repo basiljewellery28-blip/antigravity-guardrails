@@ -31,3 +31,4 @@ fi
 
 echo "✅ [Antigravity Hook] All security pre-commit checks passed cleanly!"
 exit 0
+
