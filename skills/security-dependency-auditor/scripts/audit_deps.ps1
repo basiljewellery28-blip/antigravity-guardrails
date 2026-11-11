@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Universal dependency vulnerability auditor for Antigravity skills.
 .DESCRIPTION
@@ -110,3 +110,4 @@ try {
 finally {
     Pop-Location
 }
+

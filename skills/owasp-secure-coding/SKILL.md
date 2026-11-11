@@ -57,3 +57,4 @@ In your response to the user:
 - Show that all queries are parameterized.
 - Demonstrate that schemas validate input boundaries.
 - Show the clean execution output of `verify_sast_patterns.ps1`.
+

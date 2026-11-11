@@ -17,3 +17,4 @@ Guidelines for maintaining dependency hygiene and integrity.
 - **Always Commit Lockfiles**: Lockfiles contain cryptographic hashes (`integrity: sha512-...`) of the exact tarball downloaded during installation.
 - **Automated Dependabot / Renovate**: Regularly update dependencies in small increments rather than waiting for annual bulk upgrades.
 - **Minimal Dependencies Policy**: Prefer standard library capabilities before pulling in multi-megabyte third-party packages for simple utilities.
+

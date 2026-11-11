@@ -31,3 +31,4 @@ Actionable code-level patterns for building resilient, exploit-resistant applica
 - **Password Storage**: Use **Argon2id** (preferred) or **bcrypt** ($cost \ge 12$).
 - **Data in Transit**: Enforce HTTPS and TLS 1.3 across all endpoints.
 - **Tokens**: Use cryptographically secure random number generators (`crypto.randomBytes(32)`), never `Math.random()`.
+

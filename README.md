@@ -1,7 +1,7 @@
 # 🚀 Antigravity Polyglot Engineering Guardrails
 
 > **Production-grade skills, active invariants, and security sentinels for Google Antigravity (Gemini).**  
-> Enforce Google-quality code across **TypeScript, Python, C#, Java, and Go**, eliminate agent drift, systematically diagnose bugs, secure against OWASP vulnerabilities, and transition smoothly from Claude Code without losing project context.
+> Enforce Google-quality code across **TypeScript, Python, C#, Java, Go, and Rust**, eliminate agent drift, systematically diagnose bugs, secure against OWASP vulnerabilities, automate pre-commit gates, and transition smoothly from Claude Code without losing project context.
 
 ---
 
@@ -20,7 +20,12 @@ Agents often generate vulnerable code patterns (e.g. string-concatenated SQL que
 
 **Our Fix**: Active AppSec sentinels audit code for high-entropy secrets (`scan_secrets.ps1`), test dependencies for CVEs (`audit_deps.ps1`), and block dangerous code patterns (`verify_sast_patterns.ps1`).
 
-### 3. The Model Handoff Friction (`CLAUDE.md` $\rightarrow$ Antigravity)
+### 3. Guesswork & Leaked Debug Logs During Bug Fixing
+When fixing complex or intermittent bugs, agents often guess random changes without reproducing the issue, and leak temporary `console.log` or `print()` statements into production code.
+
+**Our Fix**: The **`bug-hunter`** skill enforces a 6-phase scientific diagnosis loop: build a deterministic pass/fail feedback loop first, test 3–5 falsifiable hypotheses, tag temporary instrumentation (`[DEBUG-xxxx]`), and automatically purge debug statements with `clean_debug_tags.ps1`.
+
+### 4. The Model Handoff Friction (`CLAUDE.md` $\rightarrow$ Antigravity)
 When developers switch from Claude Code to Google Antigravity:
 - Claude Code's monolithic `CLAUDE.md` dumps all rules, API docs, and bash scripts into every turn, easily exceeding Antigravity's **24 KB per-rule budget**.
 - Bash commands written for Unix crash in Windows PowerShell.
@@ -30,13 +35,13 @@ When developers switch from Claude Code to Google Antigravity:
 
 ---
 
-## 📦 Complete Skills Catalog (11 Active Skills)
+## 📦 Complete Skills Catalog (12 Active Skills)
 
 ### 🛡️ Application Security & Hygiene
 | Skill | Category | Verification Runner | Guarantees & Invariants |
 | :--- | :--- | :--- | :--- |
 | **`security-secret-sentinel`** | Credential Leak Defense | `scan_secrets.ps1` | Zero hardcoded keys (AWS, GitHub, JWT, Google), mandatory `.env` gitignore verification. |
-| **`security-dependency-auditor`** | Supply Chain Security | `audit_deps.ps1` | Zero High/Critical CVEs (`npm audit`, `pip-audit`, `dotnet list --vulnerable`). |
+| **`security-dependency-auditor`** | Supply Chain Security | `audit_deps.ps1` | Zero High/Critical CVEs (`npm audit`, `pip-audit`, `dotnet list --vulnerable`, `cargo audit`). |
 | **`owasp-secure-coding`** | AppSec / OWASP Top 10 | `verify_sast_patterns.ps1` | Parameterized queries only (SQLi), strict schema validation (Zod/Pydantic), XSS/CSRF defense. |
 
 ### 🔬 Reliability & TDD
@@ -50,6 +55,7 @@ When developers switch from Claude Code to Google Antigravity:
 | :--- | :--- | :--- | :--- |
 | **`typescript-guardian`** | TypeScript / JS | `verify_ts.ps1` (`tsc --noEmit`) | Zero `any` policy, discriminated unions, explicit return types. |
 | **`python-guardian`** | Python | `verify_py.ps1` (`mypy` / `pytest`) | 100% type annotations, no bare `except:`, frozen dataclasses. |
+| **`rust-guardian`** | Rust (Cargo) | `verify_rust.ps1` (`cargo clippy` & `test`) | Strict memory safety, zero `unwrap()` in production, zero clippy warnings. |
 | **`csharp-guardian`** | C# (.NET 8/9) | `verify_csharp.ps1` (`dotnet build --warnaserror`) | Nullable reference types, records, async cancellation tokens. |
 | **`java-guardian`** | Java (Maven / Gradle) | `verify_java.ps1` (`mvn test` / `gradle test`) | Google Java Style, records, zero raw types, immutability. |
 | **`go-guardian`** | Go | `verify_go.ps1` (`go vet` & `go test -race`) | Explicit error checks, zero panics, table-driven tests, race detection. |
@@ -85,20 +91,31 @@ Antigravity uses **Progressive Disclosure** and a multi-tiered hierarchy:
 ## 🚀 1-Click Installation & Setup
 
 ### Global Installation (Recommended)
-Install all 11 skills globally into Antigravity with a single command:
+Make all 12 skills active across **every project** on your machine:
 
+**On Windows (PowerShell):**
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-### Project-Specific Installation
-Check specific skills directly into Git for your team:
+**On Linux / macOS (Bash):**
+```bash
+chmod +x ./install.sh && ./install.sh
+```
 
+---
+
+## 🛡️ Optional: Install Git Pre-Commit Guardrails
+Automatically block any `git commit` that introduces exposed API keys or dangerous OWASP patterns:
+
+**On Windows:**
 ```powershell
-# In your target project repository:
-New-Item -ItemType Directory -Path ".agents\skills" -Force
-Copy-Item -Path "path\to\skills\typescript-guardian" -Destination ".agents\skills\" -Recurse
-Copy-Item -Path "path\to\GEMINI.md" -Destination "."
+powershell -ExecutionPolicy Bypass -File .\setup-hooks.ps1
+```
+
+**On Linux / macOS:**
+```bash
+chmod +x ./setup-hooks.sh && ./setup-hooks.sh
 ```
 
 ---

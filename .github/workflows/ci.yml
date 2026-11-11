@@ -1,0 +1,63 @@
+name: Antigravity Skills CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  validate-skills:
+    name: Validate Skills Schema & Security
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Validate SKILL.md Frontmatter Metadata
+        shell: pwsh
+        run: |
+          Write-Host "🔍 Validating all SKILL.md files..."
+          $skills = Get-ChildItem -Path "skills" -Filter "SKILL.md" -Recurse
+          $failed = $false
+
+          foreach ($file in $skills) {
+              $content = Get-Content -Path $file.FullName -Raw
+              if ($content -notmatch "(?s)^---\r?\nname:\s*[a-zA-Z0-9_-]+\r?\ndescription:.*?\r?\n---") {
+                  Write-Host "❌ Invalid frontmatter in: $($file.FullName)" -ForegroundColor Red
+                  $failed = $true
+              } else {
+                  Write-Host "✅ Valid: $($file.Directory.Name)" -ForegroundColor Green
+              }
+          }
+
+          if ($failed) {
+              exit 1
+          }
+
+      - name: Run Secret Sentinel Scan
+        shell: pwsh
+        run: |
+          pwsh -File ./skills/security-secret-sentinel/scripts/scan_secrets.ps1
+
+      - name: Run OWASP SAST Pattern Scan
+        shell: pwsh
+        run: |
+          pwsh -File ./skills/owasp-secure-coding/scripts/verify_sast_patterns.ps1
+
+      - name: Test Global Installer (PowerShell)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          .\install.ps1
+
+      - name: Test Global Installer (Bash)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          chmod +x ./install.sh
+          ./install.sh

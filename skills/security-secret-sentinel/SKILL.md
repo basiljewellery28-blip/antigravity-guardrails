@@ -43,3 +43,4 @@ In your response to the user:
 - Show the clean execution output of `scan_secrets.ps1`.
 - Confirm that all `.env` files are tracked in `.gitignore`.
 - Provide an updated `.env.example` template if new configuration keys were introduced.
+

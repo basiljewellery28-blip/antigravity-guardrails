@@ -47,3 +47,4 @@ If an audit reports vulnerable dependencies:
    - In Node: Use `pnpm.overrides`, `resolutions`, or `overrides` in `package.json`.
 3. **Alternative Replacement**: If an abandoned package has no patched release, locate an active, maintained replacement.
 4. **Re-Audit**: Execute `audit_deps.ps1` to prove the vulnerability is resolved with exit code 0.
+

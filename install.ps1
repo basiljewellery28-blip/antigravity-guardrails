@@ -24,18 +24,19 @@ if (-not (Test-Path $globalSkillsDir)) {
     New-Item -ItemType Directory -Path $globalSkillsDir -Force | Out-Null
 }
 
-$localSkillsDir = if (-not [string]::IsNullOrWhiteSpace($PSScriptRoot) -and (Test-Path (Join-Path $PSScriptRoot "skills"))) {
-    Join-Path $PSScriptRoot "skills"
-} else {
-    Join-Path (Get-Location) "skills"
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
+if (-not $scriptDir) {
+    $scriptDir = (Get-Location).Path
 }
 
+$localSkillsDir = Join-Path $scriptDir "skills"
+
 if (-not (Test-Path $localSkillsDir)) {
-    Write-Host "❌ Could not find local 'skills' directory in $(Get-Location)" -ForegroundColor Red
+    Write-Host "❌ Could not find local 'skills' directory in $scriptDir" -ForegroundColor Red
     exit 1
 }
 
-$skills = Get-ChildItem -Path $localSkillsDir -Directory
+$skills = @(Get-ChildItem -Path $localSkillsDir -Directory)
 
 foreach ($skill in $skills) {
     $destination = Join-Path $globalSkillsDir $skill.Name

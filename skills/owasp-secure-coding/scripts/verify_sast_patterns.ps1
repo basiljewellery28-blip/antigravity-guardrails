@@ -17,14 +17,14 @@ $ErrorActionPreference = "Stop"
 Write-Host "🔍 [OWASP Sentinel] Scanning codebase for insecure code patterns..." -ForegroundColor Cyan
 
 $sastRules = @{
-    "SQL Injection (String Concatenation)" = "(SELECT|INSERT|UPDATE|DELETE)\s+.*\s*(\+|`.*?\$\{)"
-    "Dangerous Dynamic Code Execution"     = "\b(eval|exec)\s*\("
-    "Raw DOM Injection (XSS Vector)"       = "(\.innerHTML\s*=|dangerouslySetInnerHTML)"
-    "Obsolete / Weak Hash Function"        = "\b(crypto\.createHash\(['""]md5['""]\)|hashlib\.md5\b|MD5\.Create\(\))"
-    "Insecure HTTP URL in Code"            = "\bhttp:\/\/(?!localhost|127\.0\.0\.1|0\.0\.0\.0)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+    'SQL Injection (String Concatenation)' = '(SELECT|INSERT|UPDATE|DELETE)\s+.*\s*(\+|`.*?\$\{)'
+    'Dangerous Dynamic Code Execution'     = '\b(eval|exec)\s*\('
+    'Raw DOM Injection (XSS Vector)'       = '(\.innerHTML\s*=|dangerouslySetInnerHTML)'
+    'Obsolete / Weak Hash Function'        = '\b(crypto\.createHash\([''"]md5[''"]\)|hashlib\.md5\b|MD5\.Create\(\))'
+    'Insecure HTTP URL in Code'            = '\bhttp:\/\/(?!localhost|127\.0\.0\.1|0\.0\.0\.0)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
 }
 
-$sourceExtensions = @("*.ts", "*.tsx", "*.js", "*.jsx", "*.py", "*.cs", "*.java", "*.go")
+$sourceExtensions = @("*.ts", "*.tsx", "*.js", "*.jsx", "*.py", "*.cs", "*.java", "*.go", "*.rs")
 $violations = @()
 
 $files = Get-ChildItem -Path $ProjectPath -Include $sourceExtensions -Recurse -File |

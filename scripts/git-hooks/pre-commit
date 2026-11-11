@@ -1,0 +1,33 @@
+#!/usr/bin/env sh
+#
+# Antigravity Pre-Commit Hook: Guard against secret leaks and insecure code patterns
+#
+
+echo "🔍 [Antigravity Hook] Running pre-commit security verification..."
+
+# Locate PowerShell (Windows / Linux / macOS)
+if command -v pwsh >/dev/null 2>&1; then
+    POWERSHELL="pwsh"
+elif command -v powershell >/dev/null 2>&1; then
+    POWERSHELL="powershell"
+else
+    echo "⚠️ PowerShell not located, skipping automated pre-commit script check."
+    exit 0
+fi
+
+# Run Secret Sentinel
+"$POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "./skills/security-secret-sentinel/scripts/scan_secrets.ps1"
+if [ $? -ne 0 ]; then
+    echo "❌ [Antigravity Hook] Commit ABORTED: Exposed secrets detected."
+    exit 1
+fi
+
+# Run OWASP Pattern Scanner
+"$POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "./skills/owasp-secure-coding/scripts/verify_sast_patterns.ps1"
+if [ $? -ne 0 ]; then
+    echo "❌ [Antigravity Hook] Commit ABORTED: Dangerous insecure code patterns detected."
+    exit 1
+fi
+
+echo "✅ [Antigravity Hook] All security pre-commit checks passed cleanly!"
+exit 0

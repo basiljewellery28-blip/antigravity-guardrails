@@ -21,3 +21,4 @@ Guidelines for handling secrets securely in cloud-native and multi-agent systems
 If an API key or password is accidentally committed:
 1. **Rotate Immediately**: Invalidate the key in the provider console immediately. Commits are scraped by bots within seconds of being pushed to public remotes.
 2. **Purge Git History**: Use `git-filter-repo` or BFG Repo-Cleaner to rewrite history, or rotate and recommit. Never rely merely on a `git revert`.
+

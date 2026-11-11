@@ -16,13 +16,13 @@ $ErrorActionPreference = "Stop"
 Write-Host "🔍 [Secret Sentinel] Scanning project for exposed credentials..." -ForegroundColor Cyan
 
 $secretPatterns = @{
-    "AWS Access Key ID"       = "\bAKIA[0-9A-Z]{16}\b"
-    "GitHub Personal Token"   = "\bghp_[0-9a-zA-Z]{36}\b"
-    "Google API Key"          = "\bAIza[0-9A-Za-z-_]{35}\b"
-    "Generic Private Key"     = "-----BEGIN (RSA|EC|OPENSSH|PGP|DSA) PRIVATE KEY-----"
-    "Slack Webhook"           = "https://hooks\.slack\.com/services/T[0-9a-zA-Z_]+/B[0-9a-zA-Z_]+/[0-9a-zA-Z_]+"
-    "JWT Token (Bearer/Raw)"  = "\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b"
-    "Stripe Secret Key"       = "\bsk_(live|test)_[0-9a-zA-Z]{24,}\b"
+    'AWS Access Key ID'       = '\bAKIA[0-9A-Z]{16}\b'
+    'GitHub Personal Token'   = '\bghp_[0-9a-zA-Z]{36}\b'
+    'Google API Key'          = '\bAIza[0-9A-Za-z-_]{35}\b'
+    'Generic Private Key'     = '-----BEGIN (RSA|EC|OPENSSH|PGP|DSA) PRIVATE KEY-----'
+    'Slack Webhook'           = 'https://hooks\.slack\.com/services/T[0-9a-zA-Z_]+/B[0-9a-zA-Z_]+/[0-9a-zA-Z_]+'
+    'JWT Token (Bearer/Raw)'  = '\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b'
+    'Stripe Secret Key'       = '\bsk_(live|test)_[0-9a-zA-Z]{24,}\b'
 }
 
 $findings = @()
@@ -47,7 +47,7 @@ if (Test-Path ".env") {
 }
 
 # Check 2: Scan source files
-$scanExtensions = @("*.ts", "*.tsx", "*.js", "*.jsx", "*.py", "*.cs", "*.java", "*.go", "*.json", "*.yaml", "*.yml", "*.env.example")
+$scanExtensions = @("*.ts", "*.tsx", "*.js", "*.jsx", "*.py", "*.cs", "*.java", "*.go", "*.rs", "*.json", "*.yaml", "*.yml", "*.env.example")
 
 $files = Get-ChildItem -Path $ProjectPath -Include $scanExtensions -Recurse -File |
     Where-Object { $_.FullName -notmatch "node_modules|\.git|obj|bin|dist|vendor|research" }
