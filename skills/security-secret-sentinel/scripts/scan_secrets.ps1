@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Automated secret scanner for Antigravity Security Sentinel.
 .DESCRIPTION

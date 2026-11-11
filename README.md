@@ -1,7 +1,7 @@
 # 🚀 Antigravity Polyglot Engineering Guardrails
 
 > **Production-grade skills, active invariants, and security sentinels for Google Antigravity (Gemini).**  
-> Enforce Google-quality code across **TypeScript, Python, C#, Java, Go, and Rust**, eliminate agent drift, systematically diagnose bugs, secure against OWASP vulnerabilities, automate pre-commit gates, and transition smoothly from Claude Code without losing project context.
+> Enforce Google-quality code across **TypeScript, Python, C#, Java, Go, and Rust**, eliminate agent drift, surgically modify code without overengineering, systematically diagnose bugs, secure against OWASP vulnerabilities, automate pre-commit gates, and transition smoothly from Claude Code without losing project context.
 
 ---
 
@@ -15,27 +15,32 @@ When AI coding agents write code without active guardrails, they frequently:
 
 **Our Fix**: Every language guardian includes a **Mandatory Verification Gate**. Gemini is bound by an active contract to run automated compilers and test suites before reporting completion, self-correcting errors internally.
 
-### 2. Leaked Secrets & OWASP Security Vulnerabilities
+### 2. Overengineering & Adjacent Code Vandalism (Karpathy Pitfalls)
+Agents naturally invent speculative abstractions, rewrite adjacent working code, and introduce unrequested complexity.
+
+**Our Fix**: The **`karpathy-surgical-coder`** enforces the 3 Laws: Think before coding, minimum code that works (no single-use factories or speculative flags), and surgical edits (touching only the exact lines requested).
+
+### 3. Leaked Secrets & OWASP Security Vulnerabilities
 Agents often generate vulnerable code patterns (e.g. string-concatenated SQL queries, exposed credentials, missing input schemas) and leak sensitive `.env` files into Git.
 
 **Our Fix**: Active AppSec sentinels audit code for high-entropy secrets (`scan_secrets.ps1`), test dependencies for CVEs (`audit_deps.ps1`), and block dangerous code patterns (`verify_sast_patterns.ps1`).
 
-### 3. Guesswork & Leaked Debug Logs During Bug Fixing
-When fixing complex or intermittent bugs, agents often guess random changes without reproducing the issue, and leak temporary `console.log` or `print()` statements into production code.
+### 4. Conversational Fluff & Context Window Waste
+Verbose pleasantries ("Sure! I would be more than happy to...") waste tokens, slow down responses, and consume context.
 
-**Our Fix**: The **`bug-hunter`** skill enforces a 6-phase scientific diagnosis loop: build a deterministic pass/fail feedback loop first, test 3–5 falsifiable hypotheses, tag temporary instrumentation (`[DEBUG-xxxx]`), and automatically purge debug statements with `clean_debug_tags.ps1`.
-
-### 4. The Model Handoff Friction (`CLAUDE.md` $\rightarrow$ Antigravity)
-When developers switch from Claude Code to Google Antigravity:
-- Claude Code's monolithic `CLAUDE.md` dumps all rules, API docs, and bash scripts into every turn, easily exceeding Antigravity's **24 KB per-rule budget**.
-- Bash commands written for Unix crash in Windows PowerShell.
-- Context is lost, forcing the developer to re-explain the project from scratch.
-
-**Our Fix**: The **`claude-bridge`** skill intelligently parses `CLAUDE.md`, extracting always-on invariants into a token-budgeted `GEMINI.md` and modularizing procedures into Antigravity skills.
+**Our Fix**: The **`token-compressor`** enforces dense, high-signal communication: answer first, zero conversational ceremony, active voice, and payload preservation.
 
 ---
 
-## 📦 Complete Skills Catalog (12 Active Skills)
+## 📦 Complete Skills Catalog (16 Active Skills)
+
+### 🧠 Software Architecture & Code Quality
+| Skill | Category | Source Inspiration | Standards & Guarantees Enforced |
+| :--- | :--- | :--- | :--- |
+| **`karpathy-surgical-coder`** | Surgical Engineering | Andrej Karpathy | Think before coding, zero speculative code, no adjacent file mutations. |
+| **`api-interface-design`** | Contract-First API Design | Addy Osmani / Google | Hyrum's Law, deep modules, consistent error semantics, idempotent mutations. |
+| **`code-simplification`** | Cognitive Load Reduction | Addy Osmani / Anthropic | Preserve behavior exactly, flatten nesting with guard clauses, clarity over cleverness. |
+| **`token-compressor`** | High-Density Communication | Julius Brussee (Caveman) | Answer first, zero fluff/ceremony, token efficiency, code payload exactness. |
 
 ### 🛡️ Application Security & Hygiene
 | Skill | Category | Verification Runner | Guarantees & Invariants |
@@ -67,31 +72,10 @@ When developers switch from Claude Code to Google Antigravity:
 
 ---
 
-## 🏗️ Architectural Philosophy: Rules vs. Skills
-
-Antigravity uses **Progressive Disclosure** and a multi-tiered hierarchy:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│ 1. Project / Directory Rules (GEMINI.md / AGENTS.md)        │ ◄── Always-on guardrails
-├─────────────────────────────────────────────────────────────┤
-│ 2. Project Skills (.agents/skills/<name>/SKILL.md)          │ ◄── Progressive on-demand
-├─────────────────────────────────────────────────────────────┤
-│ 3. Global Configuration (~/.gemini/config/skills/)          │ ◄── Machine-wide polyglot skills
-├─────────────────────────────────────────────────────────────┤
-│ 4. Built-in Agent Engine & Tools                            │ ◄── Core system capabilities
-└─────────────────────────────────────────────────────────────┘
-```
-
-- **Rules (`GEMINI.md`)**: Hard invariants that are always loaded for their directory scope.
-- **Skills (`SKILL.md`)**: Runbooks that load into context only when triggered by relevant tasks or commands.
-
----
-
 ## 🚀 1-Click Installation & Setup
 
 ### Global Installation (Recommended)
-Make all 12 skills active across **every project** on your machine:
+Install all 16 skills globally into Antigravity with a single command:
 
 **On Windows (PowerShell):**
 ```powershell
@@ -124,9 +108,11 @@ chmod +x ./setup-hooks.sh && ./setup-hooks.sh
 
 This project incorporates and builds upon architectural insights from:
 - **Google Engineering Practices**: Readability, strict testing, and clean module boundaries.
+- **[Andrej Karpathy's Insights](https://github.com/multica-ai/andrej-karpathy-skills)**: Core discipline on LLM coding pitfalls, surgical edits, and simplicity.
+- **[Addy Osmani's Agent Skills](https://github.com/addyosmani/agent-skills)**: Senior engineering practices, API interface design, and code simplification.
 - **[Matt Pocock's Skills](https://github.com/mattpocock/skills)**: Pioneering work on TDD seams, tight feedback loops, and agent ergonomics.
-- **[Mukul's Cybersecurity Skills](https://github.com/mukul975/Anthropic-Cybersecurity-Skills)**: Structured threat framework mappings and domain categorization.
-- **Antigravity Customization Architecture**: Progressive disclosure, directory-scoped rules, and multi-agent coordination.
+- **[Julius Brussee's Caveman](https://github.com/JuliusBrussee/caveman)**: High-density token compression and zero-fluff active voice.
+- **[Mukul's Cybersecurity Skills](https://github.com/mukul975/Anthropic-Cybersecurity-Skills)**: Structured threat framework mappings and AppSec sentinels.
 
 ---
 

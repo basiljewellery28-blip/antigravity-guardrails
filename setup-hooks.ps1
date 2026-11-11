@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Installs Antigravity pre-commit guardrail hooks into a Git repository.
 .DESCRIPTION

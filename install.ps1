@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     One-click global installer for Antigravity Polyglot Engineering Skills.
 .DESCRIPTION
@@ -24,15 +24,15 @@ if (-not (Test-Path $globalSkillsDir)) {
     New-Item -ItemType Directory -Path $globalSkillsDir -Force | Out-Null
 }
 
-$scriptDir = $PSScriptRoot
-if (-not $scriptDir) {
-    $scriptDir = (Get-Location).Path
+$localSkillsDir = Join-Path (Get-Location) "skills"
+if (-not (Test-Path $localSkillsDir)) {
+    if ($PSScriptRoot -and (Test-Path (Join-Path $PSScriptRoot "skills"))) {
+        $localSkillsDir = Join-Path $PSScriptRoot "skills"
+    }
 }
 
-$localSkillsDir = Join-Path (Resolve-Path $scriptDir) "skills"
-
 if (-not (Test-Path $localSkillsDir)) {
-    Write-Host "❌ Could not find local 'skills' directory in $scriptDir" -ForegroundColor Red
+    Write-Host "❌ Could not find local 'skills' directory in $(Get-Location)" -ForegroundColor Red
     exit 1
 }
 
@@ -48,7 +48,8 @@ foreach ($skill in $skills) {
     Copy-Item -Path $skill.FullName -Destination $globalSkillsDir -Recurse -Force
 }
 
-Write-Host "`n✅ All $($skills.Count) skills installed globally with success!" -ForegroundColor Green
+Write-Host ""
+Write-Host "✅ All $($skills.Count) skills installed globally with success!" -ForegroundColor Green
 Write-Host "💡 Gemini / Antigravity will now automatically discover and use these skills across all projects on your machine." -ForegroundColor Yellow
 Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 exit 0
