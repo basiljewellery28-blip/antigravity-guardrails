@@ -1,9 +1,9 @@
-<#
+﻿<#
 .SYNOPSIS
     One-click global installer for Antigravity Polyglot Engineering Skills.
 .DESCRIPTION
-    Installs all language guardians, TDD seam runner, and migration bridges 
-    directly into your Antigravity global configuration (~/.gemini/config/skills/).
+    Installs all language guardians, TDD seam runner, security sentinels, 
+    and migration bridges directly into your Antigravity global configuration (~/.gemini/config/skills/).
 #>
 
 [CmdletBinding()]
@@ -24,14 +24,14 @@ if (-not (Test-Path $globalSkillsDir)) {
     New-Item -ItemType Directory -Path $globalSkillsDir -Force | Out-Null
 }
 
-$localSkillsDir = Join-Path $PSScriptRoot "skills"
-if (-not (Test-Path $localSkillsDir)) {
-    # If running from repo root
-    $localSkillsDir = Join-Path (Get-Location) "skills"
+$localSkillsDir = if (-not [string]::IsNullOrWhiteSpace($PSScriptRoot) -and (Test-Path (Join-Path $PSScriptRoot "skills"))) {
+    Join-Path $PSScriptRoot "skills"
+} else {
+    Join-Path (Get-Location) "skills"
 }
 
 if (-not (Test-Path $localSkillsDir)) {
-    Write-Host "❌ Could not find local 'skills' directory in $PSScriptRoot" -ForegroundColor Red
+    Write-Host "❌ Could not find local 'skills' directory in $(Get-Location)" -ForegroundColor Red
     exit 1
 }
 
@@ -51,4 +51,3 @@ Write-Host "`n✅ All $($skills.Count) skills installed globally with success!" 
 Write-Host "💡 Gemini / Antigravity will now automatically discover and use these skills across all projects on your machine." -ForegroundColor Yellow
 Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 exit 0
-
