@@ -18,26 +18,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Validate SKILL.md Frontmatter Metadata
+      - name: Validate SKILL.md Frontmatter Metadata (Windows)
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Write-Host "🔍 Validating all SKILL.md files..."
-          $skills = Get-ChildItem -Path "skills" -Filter "SKILL.md" -Recurse
-          $failed = $false
+          pwsh -File ./scripts/validate_skills.ps1
 
-          foreach ($file in $skills) {
-              $content = Get-Content -Path $file.FullName -Raw
-              if ($content -notmatch "(?s)^---\r?\nname:\s*[a-zA-Z0-9_-]+\r?\ndescription:.*?\r?\n---") {
-                  Write-Host "❌ Invalid frontmatter in: $($file.FullName)" -ForegroundColor Red
-                  $failed = $true
-              } else {
-                  Write-Host "✅ Valid: $($file.Directory.Name)" -ForegroundColor Green
-              }
-          }
-
-          if ($failed) {
-              exit 1
-          }
+      - name: Validate SKILL.md Frontmatter Metadata (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          bash ./scripts/validate_skills.sh
 
       - name: Run Secret Sentinel Scan
         shell: pwsh
@@ -53,12 +44,12 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          .\install.ps1
+          .\install.ps1 -IncludeSuites
 
       - name: Test Global Installer (Bash)
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          chmod +x ./install.sh
-          ./install.sh
+          chmod +x ./install.sh ./install-suite.sh ./scripts/*.sh
+          ./install.sh --include-suites
 

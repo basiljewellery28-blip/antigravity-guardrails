@@ -3,6 +3,7 @@
 # One-click global installer for Antigravity Polyglot Engineering Skills (Linux / macOS / Git Bash).
 #
 
+INCLUDE_SUITES="${1:-false}"
 set -euo pipefail
 
 CYAN='\033[0;36m'
@@ -42,6 +43,11 @@ for skill in "${LOCAL_SKILLS_DIR}"/*; do
         COUNT=$((COUNT + 1))
     fi
 done
+
+if [ "$INCLUDE_SUITES" = "true" ] || [ "$INCLUDE_SUITES" = "--include-suites" ]; then
+    echo -e "\n${CYAN}📦 Installing modular domain suites (Document, Founder, Cloud)...${NC}"
+    "${SCRIPT_DIR}/install-suite.sh" all "${GLOBAL_SKILLS_DIR}"
+fi
 
 echo ""
 echo -e "${GREEN}✅ All ${COUNT} skills installed globally with success!${NC}"

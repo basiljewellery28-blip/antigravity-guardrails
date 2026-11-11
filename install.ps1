@@ -8,7 +8,8 @@
 
 [CmdletBinding()]
 param(
-    [switch]$Force
+    [switch]$Force,
+    [switch]$IncludeSuites
 )
 
 $ErrorActionPreference = "Stop"
@@ -46,6 +47,14 @@ foreach ($skill in $skills) {
     Write-Host "$destination" -ForegroundColor DarkGray
     
     Copy-Item -Path $skill.FullName -Destination $globalSkillsDir -Recurse -Force
+}
+
+if ($IncludeSuites) {
+    Write-Host "`n📦 Installing modular domain suites (Document, Founder, Cloud)..." -ForegroundColor Cyan
+    $suiteInstaller = Join-Path $PSScriptRoot "install-suite.ps1"
+    if (Test-Path $suiteInstaller) {
+        & powershell -ExecutionPolicy Bypass -File $suiteInstaller -Suite all
+    }
 }
 
 Write-Host ""
