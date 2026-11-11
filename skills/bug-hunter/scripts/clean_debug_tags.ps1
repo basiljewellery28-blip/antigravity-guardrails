@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Automated debug tag cleaner for Bug Hunter.
 .DESCRIPTION

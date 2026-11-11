@@ -58,7 +58,7 @@ foreach ($file in $files) {
         $line = $lines[$i]
         
         # Skip comment documentation examples
-        if ($line -match "example|placeholder|<REDACTED>|your-api-key") {
+        if ($line -match 'example|placeholder|<REDACTED>|your-api-key') {
             continue
         }
 

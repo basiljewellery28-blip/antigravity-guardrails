@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Static Application Security Testing (SAST) pattern checker for Antigravity.
 .DESCRIPTION

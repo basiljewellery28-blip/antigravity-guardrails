@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 #
-# Installs Antigravity pre-commit guardrail hooks into the local Git repository (Linux / macOS).
+# Installs Antigravity pre-commit guardrail hooks into a Git repository (Linux / macOS).
 #
 
 set -euo pipefail
+
+TARGET_DIR="${1:-.}"
 
 CYAN='\033[0;36m'
 GREEN='\033[0;32m'
@@ -15,15 +17,21 @@ echo -e "${CYAN}═════════════════════�
 echo -e "${GREEN}   🛡️ Installing Antigravity Git Pre-Commit Security Hook      ${NC}"
 echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
 
-if [ ! -d ".git" ]; then
-    echo -e "${RED}❌ No .git directory found. Run 'git init' first.${NC}"
+RESOLVED_TARGET="$(cd "${TARGET_DIR}" && pwd)"
+GIT_DIR="${RESOLVED_TARGET}/.git"
+
+if [ ! -d "${GIT_DIR}" ]; then
+    echo -e "${RED}❌ No .git directory found in: ${RESOLVED_TARGET}${NC}"
+    echo -e "${YELLOW}💡 Make sure you are inside your project folder before running this command,${NC}"
+    echo -e "${YELLOW}   or pass the path directly: ./setup-hooks.sh /path/to/your-project${NC}"
     exit 1
 fi
 
-HOOKS_DIR=".git/hooks"
+HOOKS_DIR="${GIT_DIR}/hooks"
 mkdir -p "${HOOKS_DIR}"
 
-SOURCE_HOOK="scripts/git-hooks/pre-commit"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SOURCE_HOOK="${SCRIPT_DIR}/scripts/git-hooks/pre-commit"
 TARGET_HOOK="${HOOKS_DIR}/pre-commit"
 
 if [ ! -f "${SOURCE_HOOK}" ]; then
@@ -35,6 +43,5 @@ cp "${SOURCE_HOOK}" "${TARGET_HOOK}"
 chmod +x "${TARGET_HOOK}"
 
 echo -e "${GREEN}✅ Pre-commit hook installed to: ${TARGET_HOOK}${NC}"
-echo -e "${YELLOW}💡 Any 'git commit' will now automatically run Secret Sentinel & OWASP checks before completing.${NC}"
+echo -e "${YELLOW}💡 Any 'git commit' in '${RESOLVED_TARGET}' will now automatically run Secret Sentinel & OWASP checks before completing.${NC}"
 echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
-

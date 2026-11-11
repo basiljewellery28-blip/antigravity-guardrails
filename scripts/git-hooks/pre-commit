@@ -15,20 +15,43 @@ else
     exit 0
 fi
 
+# Locate Secret Sentinel script (local or global)
+SECRET_SCRIPT="./skills/security-secret-sentinel/scripts/scan_secrets.ps1"
+if [ ! -f "$SECRET_SCRIPT" ]; then
+    if [ -n "$USERPROFILE" ] && [ -f "$USERPROFILE/.gemini/config/skills/security-secret-sentinel/scripts/scan_secrets.ps1" ]; then
+        SECRET_SCRIPT="$USERPROFILE/.gemini/config/skills/security-secret-sentinel/scripts/scan_secrets.ps1"
+    elif [ -n "$HOME" ] && [ -f "$HOME/.gemini/config/skills/security-secret-sentinel/scripts/scan_secrets.ps1" ]; then
+        SECRET_SCRIPT="$HOME/.gemini/config/skills/security-secret-sentinel/scripts/scan_secrets.ps1"
+    fi
+fi
+
+# Locate OWASP scanner script (local or global)
+OWASP_SCRIPT="./skills/owasp-secure-coding/scripts/verify_sast_patterns.ps1"
+if [ ! -f "$OWASP_SCRIPT" ]; then
+    if [ -n "$USERPROFILE" ] && [ -f "$USERPROFILE/.gemini/config/skills/owasp-secure-coding/scripts/verify_sast_patterns.ps1" ]; then
+        OWASP_SCRIPT="$USERPROFILE/.gemini/config/skills/owasp-secure-coding/scripts/verify_sast_patterns.ps1"
+    elif [ -n "$HOME" ] && [ -f "$HOME/.gemini/config/skills/owasp-secure-coding/scripts/verify_sast_patterns.ps1" ]; then
+        OWASP_SCRIPT="$HOME/.gemini/config/skills/owasp-secure-coding/scripts/verify_sast_patterns.ps1"
+    fi
+fi
+
 # Run Secret Sentinel
-"$POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "./skills/security-secret-sentinel/scripts/scan_secrets.ps1"
-if [ $? -ne 0 ]; then
-    echo "❌ [Antigravity Hook] Commit ABORTED: Exposed secrets detected."
-    exit 1
+if [ -f "$SECRET_SCRIPT" ]; then
+    "$POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "$SECRET_SCRIPT"
+    if [ $? -ne 0 ]; then
+        echo "❌ [Antigravity Hook] Commit ABORTED: Exposed secrets detected."
+        exit 1
+    fi
 fi
 
 # Run OWASP Pattern Scanner
-"$POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "./skills/owasp-secure-coding/scripts/verify_sast_patterns.ps1"
-if [ $? -ne 0 ]; then
-    echo "❌ [Antigravity Hook] Commit ABORTED: Dangerous insecure code patterns detected."
-    exit 1
+if [ -f "$OWASP_SCRIPT" ]; then
+    "$POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "$OWASP_SCRIPT"
+    if [ $? -ne 0 ]; then
+        echo "❌ [Antigravity Hook] Commit ABORTED: Dangerous insecure code patterns detected."
+        exit 1
+    fi
 fi
 
 echo "✅ [Antigravity Hook] All security pre-commit checks passed cleanly!"
 exit 0
-
