@@ -39,3 +39,4 @@ else
     echo "   Validation PASSED: All $VALID skill(s) conform to schema"
     exit 0
 fi
+

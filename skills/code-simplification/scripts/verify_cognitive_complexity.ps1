@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Cognitive complexity and indentation checker for Code Simplification.
 .DESCRIPTION
@@ -45,3 +45,4 @@ if ($flagged -eq 0) {
     Write-Host "💡 Found $flagged file(s) with deep nesting. Consider refactoring with guard clauses." -ForegroundColor Yellow
     exit 0
 }
+

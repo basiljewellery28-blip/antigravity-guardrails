@@ -46,3 +46,4 @@ The script validates that:
 1. No unrequested files were modified.
 2. No unused imports or orphan variables were introduced.
 3. The diff size is strictly proportional to the task requested.
+

@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Surgical diff inspector for Karpathy Surgical Coder.
 .DESCRIPTION
@@ -47,3 +47,4 @@ if ($diffStat) {
 
 Write-Host "✅ [Surgical Coder] Surgical diff inspection completed." -ForegroundColor Green
 exit 0
+

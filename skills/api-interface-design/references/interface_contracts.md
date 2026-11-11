@@ -21,3 +21,4 @@ Standardized HTTP status mapping:
 
 - **Shallow Module (Anti-pattern)**: A complex interface wrapping simple logic. Requires the caller to know many parameters and details.
 - **Deep Module (Best Practice)**: A simple, minimal interface that hides substantial internal capability. Easy to invoke, difficult to break.
+

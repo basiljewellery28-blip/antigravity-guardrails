@@ -22,3 +22,4 @@ Adapted from Caveman token efficiency standards.
 ## Example 2: Architecture Advice
 
 Deliver the trade-off matrix directly rather than writing multiple paragraphs of introductory conversational transitions.
+

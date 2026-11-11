@@ -36,3 +36,4 @@ bq mk \
   my_project:analytics.events \
   schema.json
 ```
+

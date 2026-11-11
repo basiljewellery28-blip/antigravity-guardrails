@@ -63,3 +63,4 @@ if ($violations.Count -gt 0) {
     Write-Host "==========================================================" -ForegroundColor Cyan
     exit 0
 }
+

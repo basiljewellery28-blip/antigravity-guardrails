@@ -39,3 +39,4 @@ POSIX Bash:
 ```bash
 ./skills/browser-testing-with-devtools/scripts/verify_browser_suite.sh --url "http://localhost:3000"
 ```
+

@@ -62,3 +62,4 @@ Before concluding a simplification task, run the complexity scanner:
 powershell -File ./skills/code-simplification/scripts/verify_cognitive_complexity.ps1
 ```
 The script flags functions with excessive nesting depth (> 4 levels) or extreme line length.
+

@@ -26,3 +26,4 @@ Before engineering begins, review proposals through a founder and CEO lens. High
 - [ ] **Architecture Sanity**: Does this introduce unnecessary microservices, external dependencies, or complex state machines?
 - [ ] **Rollback Feasibility**: If this deployment fails at 2:00 AM, is rollback instantaneous and non-destructive?
 - [ ] **Non-Negotiables**: Are security, latency, and data integrity guarantees explicit?
+

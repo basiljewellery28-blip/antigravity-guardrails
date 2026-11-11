@@ -51,3 +51,4 @@ gcloud storage buckets update gs://BUCKET_NAME --lifecycle-file=lifecycle.json
 - **Uniform Access**: Always enforce uniform bucket-level access (`--uniform-bucket-level-access`).
 - **No Public Read by Default**: Keep all buckets private; generate time-limited Signed URLs for client uploads/downloads.
 - **CORS Minimal Scopes**: Restrict allowed origins to production domains only.
+

@@ -48,3 +48,4 @@ gcloud run services update-traffic my-service \
 - **Statelessness**: Never rely on local filesystem persistence between requests.
 - **Port Binding**: Application must bind to the port defined by `$PORT` (default `8080`).
 - **Graceful Shutdown**: Handle `SIGTERM` signals within 10 seconds to finish in-flight requests.
+

@@ -55,3 +55,4 @@ The script validates:
 1. All public boundaries have explicit schemas.
 2. Error responses adhere to structured payloads.
 3. No raw untyped dictionaries/objects are exposed at entry points.
+

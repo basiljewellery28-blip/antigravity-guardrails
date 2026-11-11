@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     API Surface & Schema verification runner for Antigravity.
 .DESCRIPTION
@@ -52,3 +52,4 @@ if ($warnings -eq 0) {
     Write-Host "⚠️ [API Surface] Found $warnings potential interface design warning(s). Review above." -ForegroundColor Yellow
     exit 0
 }
+

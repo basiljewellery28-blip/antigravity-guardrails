@@ -26,3 +26,4 @@ Automated unit tests check that isolated functions return expected outputs, but 
 3. **EXECUTE**: Run automated tests or execute scenarios via browser tools.
 4. **DOCUMENT**: Record test artifacts, screenshots, and response times.
 5. **CERTIFY**: Issue formal QA sign-off only when all critical and blocker items pass.
+

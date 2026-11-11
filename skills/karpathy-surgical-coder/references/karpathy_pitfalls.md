@@ -29,3 +29,4 @@ A catalog of the most frequent mistakes AI coding assistants make, and the concr
 
 - **The Pitfall**: Writing complex error fallback logic for internal conditions that can never occur in reality.
 - **The Antidote**: Validate boundaries at system entry points. Inside trusted code, fail fast without speculative wrapping.
+

@@ -31,3 +31,4 @@ POSIX Bash:
 ```bash
 ./skills/deslop-codebase/scripts/verify_codebase_slop.sh
 ```
+

@@ -35,3 +35,4 @@ Eliminate all conversational throat-clearing:
 - Use short, clear, active sentences.
 - Avoid vague qualifiers (*"basically"*, *"essentially"*, *"pretty much"*, *"just"*).
 - When a change is small, show only the modified lines and 1–2 lines of context, rather than re-printing a 600-line file.
+

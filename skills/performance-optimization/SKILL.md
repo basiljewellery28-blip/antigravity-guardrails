@@ -46,3 +46,4 @@ POSIX Bash:
 ```bash
 ./skills/performance-optimization/scripts/verify_performance.sh
 ```
+

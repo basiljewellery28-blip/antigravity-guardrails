@@ -52,3 +52,4 @@ POSIX Bash:
 ```bash
 ./skills/git-workflow-and-versioning/scripts/verify_git_hygiene.sh
 ```
+

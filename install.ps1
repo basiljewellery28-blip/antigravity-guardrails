@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     One-click global installer for Antigravity Polyglot Engineering Skills.
 .DESCRIPTION

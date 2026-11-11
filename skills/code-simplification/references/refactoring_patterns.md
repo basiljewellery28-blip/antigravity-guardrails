@@ -34,3 +34,4 @@ function getDiscount(user: User, cart: Cart): number {
 ## 2. Decompose Heavy Chained Pipelines
 
 When `.map()`, `.filter()`, and `.reduce()` chains become longer than 3 lines, name the intermediate steps or use explicit loops with clear accumulators.
+
