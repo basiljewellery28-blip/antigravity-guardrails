@@ -66,3 +66,4 @@ test("calculateDiscount applies 15%", () => {
   expect(calculateDiscount(200)).toBe(30);
 });
 ```
+

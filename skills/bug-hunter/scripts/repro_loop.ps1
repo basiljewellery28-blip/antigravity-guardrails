@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Automated reproduction and flakiness tester for Bug Hunter.
 .DESCRIPTION
@@ -73,3 +73,4 @@ if ($failures -gt 0) {
 } else {
     exit 0
 }
+

@@ -77,3 +77,4 @@ Instructions requiring the agent to display the passing command and output in it
 4. Verify that your verification scripts run cleanly.
 5. Commit your changes (`git commit -m "feat: add rust-guardian skill with cargo test verification"`).
 6. Open a Pull Request with a clear description and sample verification output!
+

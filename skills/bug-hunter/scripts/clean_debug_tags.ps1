@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Automated debug tag cleaner for Bug Hunter.
 .DESCRIPTION
@@ -60,3 +60,4 @@ if ($filesWithTags.Count -eq 0) {
         exit 0
     }
 }
+

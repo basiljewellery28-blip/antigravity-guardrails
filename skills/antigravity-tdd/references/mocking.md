@@ -78,3 +78,4 @@ Why the SDK approach wins:
 1. Each mock returns an explicit, type-safe shape.
 2. No nested `if (url === '/api/user')` logic inside mock handlers.
 3. Tests make it immediately obvious which business endpoints are being exercised.
+

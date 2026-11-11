@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     One-click global installer for Antigravity Polyglot Engineering Skills.
 .DESCRIPTION
@@ -51,3 +51,4 @@ Write-Host "`n✅ All $($skills.Count) skills installed globally with success!" 
 Write-Host "💡 Gemini / Antigravity will now automatically discover and use these skills across all projects on your machine." -ForegroundColor Yellow
 Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 exit 0
+
