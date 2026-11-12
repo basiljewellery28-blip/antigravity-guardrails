@@ -44,7 +44,8 @@ while IFS='|' read -r hash subject; do
     else
         echo "  [$hash] $subject (Valid)"
     fi
-done < <(git log -n "$DEPTH" --pretty=format:"%h|%s" 2>/dev/null || true)
+# tformat, not format: format omits the final newline, so `read` silently dropped the oldest commit.
+done < <(git log -n "$DEPTH" --pretty=tformat:"%h|%s" 2>/dev/null || true)
 
 echo -e "\n[3/3] Evaluating Git Hygiene Gate Status..."
 if [ "$VIOLATIONS" -gt 0 ]; then

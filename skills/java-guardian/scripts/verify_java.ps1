@@ -50,6 +50,13 @@ try {
     $exitCode = $LASTEXITCODE
     $ErrorActionPreference = "Stop"
 
+    # Maven exits 0 with "No tests to run." — a pass that verified nothing.
+    if ($exitCode -eq 0 -and $exe -notmatch 'gradle' -and -not ($output -match 'Tests run: [1-9]')) {
+        Write-Host "❌ [Java Guardian] Build succeeded but no tests were executed. Add tests before claiming the work is verified." -ForegroundColor Red
+        $output | ForEach-Object { "$_" } | Write-Host
+        exit 1
+    }
+
     if ($exitCode -eq 0) {
         Write-Host "✅ [Java Guardian] Build & tests passed with ZERO errors!" -ForegroundColor Green
         $output | ForEach-Object { "$_" } | Write-Host

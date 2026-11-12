@@ -58,6 +58,16 @@ jobs:
           }
           if ($bad -gt 0) { exit 1 }
 
+      # A tool once wrote a literal backspace (0x08) for "\b" into a regex, silently disabling a check.
+      - name: Reject control characters in text files (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          if git grep -nIP '[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]'; then
+            echo "Control characters found above (usually a mangled escape such as \b)."
+            exit 1
+          fi
+
       - name: ShellCheck bash scripts and git hook (Linux)
         if: runner.os == 'Linux'
         shell: bash

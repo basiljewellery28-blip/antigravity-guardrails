@@ -89,7 +89,7 @@ try {
                     Write-Host "❌ $($proj.Name): dotnet could not complete the audit (restore the project first):" -ForegroundColor Red
                     Write-Host $dotnetOutput
                     $hasVulnerability = $true
-                } elseif ($dotnetOutput -match '(?m)^\s*>.*(High|Critical)') {
+                } elseif ($dotnetOutput -match '(?m)^\s*>.*\b(High|Critical)\b') {
                     Write-Host "❌ $($proj.Name): High/Critical vulnerable packages:" -ForegroundColor Red
                     Write-Host $dotnetOutput
                     $hasVulnerability = $true
