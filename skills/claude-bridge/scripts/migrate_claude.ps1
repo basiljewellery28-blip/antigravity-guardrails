@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Automated migration tool: converts CLAUDE.md into native Antigravity GEMINI.md.
 .DESCRIPTION

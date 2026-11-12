@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     One-click global installer for Antigravity Polyglot Engineering Skills.
 .DESCRIPTION
@@ -8,7 +8,6 @@
 
 [CmdletBinding()]
 param(
-    [switch]$Force,
     [switch]$IncludeSuites
 )
 
@@ -18,22 +17,18 @@ Write-Host "══════════════════════�
 Write-Host "   🚀 Installing Antigravity Polyglot Engineering Skills      " -ForegroundColor Green
 Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan
 
-$globalSkillsDir = Join-Path $env:USERPROFILE ".gemini\config\skills"
+$globalSkillsDir = Join-Path (Join-Path (Join-Path $HOME ".gemini") "config") "skills"
 
 if (-not (Test-Path $globalSkillsDir)) {
     Write-Host "📁 Creating global skills directory: $globalSkillsDir" -ForegroundColor Cyan
     New-Item -ItemType Directory -Path $globalSkillsDir -Force | Out-Null
 }
 
-$localSkillsDir = Join-Path (Get-Location) "skills"
-if (-not (Test-Path $localSkillsDir)) {
-    if ($PSScriptRoot -and (Test-Path (Join-Path $PSScriptRoot "skills"))) {
-        $localSkillsDir = Join-Path $PSScriptRoot "skills"
-    }
-}
+# Not Get-Location: running from another directory must still install this repo.
+$localSkillsDir = Join-Path $PSScriptRoot "skills"
 
 if (-not (Test-Path $localSkillsDir)) {
-    Write-Host "❌ Could not find local 'skills' directory in $(Get-Location)" -ForegroundColor Red
+    Write-Host "❌ Could not find local 'skills' directory in $PSScriptRoot" -ForegroundColor Red
     exit 1
 }
 
@@ -52,9 +47,12 @@ foreach ($skill in $skills) {
 if ($IncludeSuites) {
     Write-Host "`n📦 Installing modular domain suites (Document, Founder, Cloud)..." -ForegroundColor Cyan
     $suiteInstaller = Join-Path $PSScriptRoot "install-suite.ps1"
-    if (Test-Path $suiteInstaller) {
-        & powershell -ExecutionPolicy Bypass -File $suiteInstaller -Suite all
+    if (-not (Test-Path $suiteInstaller)) {
+        Write-Host "❌ Could not find $suiteInstaller" -ForegroundColor Red
+        exit 1
     }
+    # In-process (not a child powershell.exe, which does not exist on Linux/macOS); -Suite all reinstalls core too, harmlessly.
+    & $suiteInstaller -Suite all -TargetSkillsDir $globalSkillsDir
 }
 
 Write-Host ""

@@ -27,16 +27,18 @@ foreach ($sp in $searchPaths) {
         continue
     }
 
+    $rootLen = (Resolve-Path $RootDirectory).Path.Length
     $skillFiles = @(Get-ChildItem -Path $fullPath -Filter "SKILL.md" -Recurse -File -ErrorAction SilentlyContinue |
-        Where-Object { $_.FullName -notmatch 'node_modules|\.git|vendor|research' })
+        Where-Object { $_.FullName.Substring($rootLen) -notmatch '[/\\](node_modules|\.git|vendor|research)[/\\]' })
 
     foreach ($file in $skillFiles) {
         $content = [System.IO.File]::ReadAllText($file.FullName)
         
-        # Check for YAML frontmatter block
-        $hasFrontmatter = $content -match '(?s)^---\r?\n.+?\r?\n---'
-        $hasName = $content -match '(?m)^name:\s*[a-zA-Z0-9_-]+'
-        $hasDescription = $content -match '(?m)^description:\s*.+'
+        # Only look inside the frontmatter: a "name:" line in the body must not satisfy the check.
+        $fm = [regex]::Match($content, '(?s)^\uFEFF?---\r?\n(.+?)\r?\n---')
+        $hasFrontmatter = $fm.Success
+        $hasName = $hasFrontmatter -and ($fm.Groups[1].Value -match '(?m)^name:\s*[a-zA-Z0-9_-]+')
+        $hasDescription = $hasFrontmatter -and ($fm.Groups[1].Value -match '(?m)^description:\s*\S')
 
         if ($hasFrontmatter -and $hasName -and $hasDescription) {
             Write-Host "  [VALID]   $($file.Directory.Name)" -ForegroundColor Green
@@ -46,6 +48,12 @@ foreach ($sp in $searchPaths) {
             $invalidCount++
         }
     }
+}
+
+# A typo in -RootDirectory would otherwise pass with zero skills checked.
+if ($validCount + $invalidCount -eq 0) {
+    Write-Host "   Validation FAILED: no SKILL.md files found under $RootDirectory" -ForegroundColor Red
+    exit 1
 }
 
 Write-Host "`n==========================================================" -ForegroundColor Cyan

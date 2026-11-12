@@ -9,6 +9,9 @@ description: >-
 
 This skill enforces strict, production-grade Python engineering based on Google Python Style Standards and modern type safety practices.
 
+> **Reference** (load on demand):
+> - [Google Python Engineering Style Reference](./references/google_python_style.md): Type annotations and signatures, exception handling, and data structures and classes.
+
 ---
 
 ## Phase 1: Environment & Tooling Discovery

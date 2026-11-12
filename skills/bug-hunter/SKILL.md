@@ -11,6 +11,9 @@ Adapted from Matt Pocock's bug diagnosis discipline and Google Site Reliability 
 
 When a bug is difficult or non-obvious, **guessing and staring at code is strictly prohibited**. You must follow this 6-phase scientific loop.
 
+> **Reference** (load on demand):
+> - [Building Tight Pass/Fail Feedback Loops](./references/feedback_loops.md): Ten ways to construct a tight pass/fail feedback loop.
+
 ---
 
 ## 🔒 Secret Redaction Requirement

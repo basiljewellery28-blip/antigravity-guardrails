@@ -28,14 +28,20 @@ Write-Host "`n[1/3] Checking for runaway output logs and oversized artifacts in:
 
 $oversizedFiles = @()
 
-if (Test-Path $TargetDirectory) {
-    $logs = @(Get-ChildItem -Path $TargetDirectory -Recurse -File -Include *.log, *.txt, *.jsonl -ErrorAction SilentlyContinue |
-        Where-Object { $_.FullName -notmatch 'node_modules|\.git|vendor|research' -and $_.Length -gt ($MaxLogSizeMb * 1MB) })
-    
-    foreach ($l in $logs) {
-        $sizeMb = [math]::Round($l.Length / 1MB, 2)
-        $oversizedFiles += "$($l.FullName) ($sizeMb MB > $MaxLogSizeMb MB limit)"
-    }
+if (-not (Test-Path $TargetDirectory)) {
+    Write-Host "  Target directory not found: $TargetDirectory" -ForegroundColor Red
+    exit 1
+}
+
+$root = (Resolve-Path $TargetDirectory).Path
+# Whole-segment match on the path below the target: a bare 'research' or '.git' substring would
+# exclude e.g. "my-research-app" or ".github" and let oversized logs pass.
+$logs = @(Get-ChildItem -Path $TargetDirectory -Recurse -File -Include *.log, *.txt, *.jsonl -ErrorAction SilentlyContinue |
+    Where-Object { $_.FullName.Substring($root.Length) -notmatch '[\\/](node_modules|\.git|vendor|research)[\\/]' -and $_.Length -gt ($MaxLogSizeMb * 1MB) })
+
+foreach ($l in $logs) {
+    $sizeMb = [math]::Round($l.Length / 1MB, 2)
+    $oversizedFiles += "$($l.FullName) ($sizeMb MB > $MaxLogSizeMb MB limit)"
 }
 
 if ($oversizedFiles.Count -gt 0) {

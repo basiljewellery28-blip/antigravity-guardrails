@@ -11,7 +11,8 @@ param (
 )
 
 Set-StrictMode -Version Latest
-$ErrorActionPreference = "Stop"
+# Not "Stop": Windows PowerShell 5.1 turns any git stderr output (even with 2>$null) into a terminating error.
+$ErrorActionPreference = "Continue"
 
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "   Git Workflow & Repository Hygiene Gate" -ForegroundColor Cyan
@@ -26,9 +27,19 @@ if (-not (Get-Command "git" -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-$statusOutput = @(git status --porcelain 2>$null)
+$null = git rev-parse --is-inside-work-tree 2>$null
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "  Not inside a git repository; nothing to verify." -ForegroundColor Red
+    exit 1
+}
+
+# Match the file name, not a substring: "auth.login.ts" or "app.environment.ts" are not artifacts,
+# and committed templates (.env.example) are meant to exist.
+$statusOutput = @(git status --porcelain --untracked-files=all 2>$null)
 $strayArtifacts = @($statusOutput | Where-Object {
-    $_ -match '(?:\.env|\.log|Thumbs\.db|\.DS_Store|node_modules)'
+    $path = $_.Substring(3).Trim('"')
+    $path -match '(^|/)(\.env(\.[^/]*)?|Thumbs\.db|\.DS_Store)$|\.log$|(^|/)node_modules/' -and
+    $path -notmatch '\.(example|sample|template)$'
 })
 
 if ($strayArtifacts.Count -gt 0) {
@@ -41,7 +52,7 @@ if ($strayArtifacts.Count -gt 0) {
 
 # 2. Check recent commit messages for Conventional Commits formatting
 Write-Host "`n[2/3] Validating recent commit messages (depth = $CommitHistoryDepth)..." -ForegroundColor Gray
-$commitRegex = '^(?:feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(?:\([a-zA-Z0-9_\-\.\/]+\))?:\s+.+'
+$commitRegex = '^(?:feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(?:\([a-zA-Z0-9_\-\.\/]+\))?!?:\s+.+'
 
 $recentCommits = @(git log "-n$CommitHistoryDepth" --pretty=format:"%h|%s" 2>$null)
 if ($recentCommits.Count -gt 0) {
@@ -52,7 +63,7 @@ if ($recentCommits.Count -gt 0) {
             $subject = if ($parts.Length -gt 1) { $parts[1] } else { "" }
 
             # Ignore Merge commits or initial commit
-            if ($subject -match '^Merge ' -or $subject -match '^Initial commit') {
+            if ($subject -match '^Merge ' -or $subject -match '^Initial commit' -or $subject -match '^Revert "') {
                 Write-Host "  [$hash] $subject (Allowed merge/init)" -ForegroundColor DarkGray
                 continue
             }

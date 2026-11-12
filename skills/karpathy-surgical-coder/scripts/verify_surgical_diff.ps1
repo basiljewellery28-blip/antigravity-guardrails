@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Surgical diff inspector for Karpathy Surgical Coder.
 .DESCRIPTION
@@ -11,16 +11,23 @@ param(
     [int]$MaxAllowedFiles = 10
 )
 
-$ErrorActionPreference = "Stop"
+# Not "Stop": Windows PowerShell 5.1 turns any git stderr output (CRLF warnings, "not a repository") into a terminating error.
+$ErrorActionPreference = "Continue"
 
 Write-Host "🔍 [Surgical Coder] Inspecting working tree for surgical precision..." -ForegroundColor Cyan
 
-if (-not (Test-Path ".git")) {
+# rev-parse (not Test-Path .git) so it also works from a subdirectory of the repo.
+$inRepo = $false
+if (Get-Command git -ErrorAction SilentlyContinue) {
+    $null = git rev-parse --is-inside-work-tree 2>$null
+    $inRepo = ($LASTEXITCODE -eq 0)
+}
+if (-not $inRepo) {
     Write-Host "ℹ️ Not a git repository. Skipping git diff inspection." -ForegroundColor Yellow
     exit 0
 }
 
-$statusOutput = git status --porcelain 2>&1
+$statusOutput = git status --porcelain 2>$null
 if (-not $statusOutput) {
     Write-Host "✅ Working tree is completely clean. No pending diffs." -ForegroundColor Green
     exit 0
@@ -28,7 +35,9 @@ if (-not $statusOutput) {
 
 $modifiedFiles = @(git diff --name-only)
 $stagedFiles = @(git diff --cached --name-only)
-$allChanged = @($modifiedFiles + $stagedFiles | Select-Object -Unique | Where-Object { $_ })
+# Untracked files are churn too, but git diff never lists them.
+$untrackedFiles = @(git ls-files --others --exclude-standard --full-name :/)
+$allChanged = @($modifiedFiles + $stagedFiles + $untrackedFiles | Select-Object -Unique | Where-Object { $_ })
 
 Write-Host "📊 Modified file count: $($allChanged.Count)" -ForegroundColor Cyan
 foreach ($f in $allChanged) {

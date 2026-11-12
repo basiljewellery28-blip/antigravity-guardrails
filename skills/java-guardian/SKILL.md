@@ -9,6 +9,9 @@ description: >-
 
 This skill enforces strict, production-grade Java engineering following the official Google Java Style Guide and modern Java standards.
 
+> **Reference** (load on demand):
+> - [Google Java Style & Engineering Reference](./references/google_java_style.md): Naming and formatting conventions, and modern Java best practices.
+
 ---
 
 ## Phase 1: Build Tool & Environment Discovery

@@ -11,6 +11,9 @@ Adapted from Addy Osmani's engineering skills and Google interface design princi
 
 A good interface makes the right thing easy and the wrong thing hard. This skill guides the creation of durable, misuse-resistant public contracts.
 
+> **Reference** (load on demand):
+> - [Interface Design & Error Contract Reference](./references/interface_contracts.md): REST endpoint error semantics, and deep vs. shallow modules.
+
 ---
 
 ## Core Laws of Interface Design

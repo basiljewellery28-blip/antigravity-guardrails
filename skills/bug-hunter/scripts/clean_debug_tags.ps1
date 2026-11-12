@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Automated debug tag cleaner for Bug Hunter.
 .DESCRIPTION
@@ -19,11 +19,18 @@ $filesWithTags = @()
 
 Write-Host "🔍 [Bug Hunter] Scanning for temporary debug tags ([DEBUG-*])..." -ForegroundColor Cyan
 
+$root = (Resolve-Path $ProjectPath).Path
+# Match whole path segments relative to the project root: a bare 'bin' also matched "cabinet-api",
+# silently excluding every file and reporting a false "clean".
 $files = Get-ChildItem -Path $ProjectPath -Include $sourceExtensions -Recurse -File -Exclude "clean_debug_tags.ps1" |
-    Where-Object { $_.FullName -notmatch 'node_modules|\.git|obj|bin|dist|vendor' }
+    Where-Object { $_.FullName.Substring($root.Length) -notmatch '[\\/](node_modules|\.git|obj|bin|dist|vendor)[\\/]' }
 
 foreach ($file in $files) {
-    $content = [System.IO.File]::ReadAllLines($file.FullName)
+    $bytes = [System.IO.File]::ReadAllBytes($file.FullName)
+    $hasBom = $bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF
+    $skip = if ($hasBom) { 3 } else { 0 }
+    # Split keeping line terminators so a rewrite preserves the file's original line endings.
+    $content = @([regex]::Split([System.Text.Encoding]::UTF8.GetString($bytes, $skip, $bytes.Length - $skip), '(?<=\n)') | Where-Object { $_ -ne '' })
     $hasTag = $false
     $newLines = @()
 
@@ -41,7 +48,7 @@ foreach ($file in $files) {
     if ($hasTag) {
         $filesWithTags += $file.FullName
         if ($Remove) {
-            [System.IO.File]::WriteAllLines($file.FullName, $newLines, [System.Text.Encoding]::UTF8)
+            [System.IO.File]::WriteAllText($file.FullName, ($newLines -join ''), (New-Object System.Text.UTF8Encoding($hasBom)))
             Write-Host "  🧹 Removed debug statements from $($file.Name)" -ForegroundColor Green
         }
     }

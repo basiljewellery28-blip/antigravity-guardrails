@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     API Surface & Schema verification runner for Antigravity.
 .DESCRIPTION
@@ -15,11 +15,16 @@ $ErrorActionPreference = "Stop"
 
 Write-Host "🔍 [API Surface] Checking interface contracts and route definitions..." -ForegroundColor Cyan
 
-$routeFiles = Get-ChildItem -Path $ProjectPath -Include @("*.ts", "*.js", "*.py", "*.cs", "*.go") -Recurse -File |
-    Where-Object { 
-        $_.FullName -notmatch 'node_modules|\.git|obj|bin|dist|vendor|research' -and
-        ($_.FullName -match 'routes|controllers|endpoints|api|handlers')
-    }
+$root = (Resolve-Path $ProjectPath).Path
+
+# Judge the path below the scan root, by whole segments / dotted name parts: a parent folder such as
+# "my-api" must not make every file a route file, nor "cabinet" hide them all.
+$routeFiles = @(Get-ChildItem -Path $root -Include @("*.ts", "*.js", "*.py", "*.cs", "*.go") -Recurse -File |
+    Where-Object {
+        $rel = $_.FullName.Substring($root.Length)
+        $rel -notmatch '(^|[\\/])(node_modules|\.git|obj|bin|dist|vendor|research)[\\/]' -and
+        ($rel -match '(^|[\\/._-])(routes?|controllers?|endpoints?|api|handlers?)([\\/._-]|$)')
+    })
 
 if ($routeFiles.Count -eq 0) {
     Write-Host "ℹ️ No dedicated API/route files detected in current path." -ForegroundColor Yellow
@@ -33,7 +38,7 @@ foreach ($f in $routeFiles) {
     $content = [System.IO.File]::ReadAllText($f.FullName)
     
     # Check 1: Untyped any in route handler
-    if ($content -match ':\s*any\b|\bRequest\s*,\s*any\b') {
+    if ($content -match ':\s*any\s*[,)=;>\]]|\bRequest\s*,\s*any\b') {
         Write-Host "  ⚠️ $($f.Name): Found unconstrained 'any' in route signature." -ForegroundColor Yellow
         $warnings++
     }

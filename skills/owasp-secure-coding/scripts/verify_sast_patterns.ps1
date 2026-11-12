@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Static Application Security Testing (SAST) pattern checker for Antigravity.
 .DESCRIPTION
@@ -17,18 +17,21 @@ $ErrorActionPreference = "Stop"
 Write-Host "🔍 [OWASP Sentinel] Scanning codebase for insecure code patterns..." -ForegroundColor Cyan
 
 $sastRules = @{
-    'SQL Injection (String Concatenation)' = '(SELECT|INSERT|UPDATE|DELETE)\s+.*\s*(\+|`.*?\$\{)'
-    'Dangerous Dynamic Code Execution'     = '\b(eval|exec)\s*\('
-    'Raw DOM Injection (XSS Vector)'       = '(\.innerHTML\s*=|dangerouslySetInnerHTML)'
-    'Obsolete / Weak Hash Function'        = '\b(crypto\.createHash\([''"]md5[''"]\)|hashlib\.md5\b|MD5\.Create\(\))'
-    'Insecure HTTP URL in Code'            = '\bhttp:\/\/(?!localhost|127\.0\.0\.1|0\.0\.0\.0)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+    'SQL Injection (String Concatenation)' = '(?:SELECT\s+.+\s+FROM|INSERT\s+INTO|UPDATE\s+\w+\s+SET|DELETE\s+FROM)\b.*(?:["'']\s*\+|\$\{|\{\w|\.format\(|["'']\s+%\s+[\w(])'
+    'Dangerous Dynamic Code Execution'     = '(?<![.\w])(?:eval|exec)\s*\(|\bchild_process\.exec\s*\('
+    'Raw DOM Injection (XSS Vector)'       = '(\.innerHTML\s*\+?=(?!=)|dangerouslySetInnerHTML)'
+    'Obsolete / Weak Hash Function'        = '\b(crypto\.createHash\([''"]md5[''"]\)|hashlib\.md5\b|MD5\.Create\(\)|MessageDigest\.getInstance\([''"]MD5[''"]\)|\bmd5\.(New|Sum)\()'
+    'Insecure HTTP URL in Code'            = '\bhttp:\/\/(?!localhost|127\.0\.0\.1|0\.0\.0\.0|www\.w3\.org|schemas\.openxmlformats\.org|schemas\.microsoft\.com|schemas\.xmlsoap\.org|openoffice\.org|purl\.org|json-schema\.org)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
 }
 
 $sourceExtensions = @("*.ts", "*.tsx", "*.js", "*.jsx", "*.py", "*.cs", "*.java", "*.go", "*.rs")
 $violations = @()
+$root = (Resolve-Path $ProjectPath).Path
 
-$files = Get-ChildItem -Path $ProjectPath -Include $sourceExtensions -Recurse -File |
-    Where-Object { $_.FullName -notmatch 'node_modules|\.git|obj|bin|dist|vendor|research' }
+# Match whole path segments below the scan root, so a parent folder like "cabinet" cannot hide files
+# and a repo under e.g. /work/bin/ is still scanned.
+$files = Get-ChildItem -Path $root -Include $sourceExtensions -Recurse -File |
+    Where-Object { $_.FullName.Substring($root.Length) -notmatch '(^|[\\/])(node_modules|\.git|obj|bin|dist|vendor|research)[\\/]' }
 
 foreach ($file in $files) {
     $lines = [System.IO.File]::ReadAllLines($file.FullName)
@@ -36,7 +39,7 @@ foreach ($file in $files) {
         $line = $lines[$i]
 
         # Ignore comments and docs
-        if ($line.Trim().StartsWith("//") -or $line.Trim().StartsWith("#") -or $line.Trim().StartsWith("*")) {
+        if ($line.Trim().StartsWith("//") -or $line.Trim().StartsWith("#") -or $line.Trim().StartsWith("*") -or $line.Trim().StartsWith("/*")) {
             continue
         }
 
@@ -44,7 +47,7 @@ foreach ($file in $files) {
             $pattern = $sastRules[$ruleName]
             if ($line -match $pattern) {
                 $violations += [PSCustomObject]@{
-                    File    = $file.Name
+                    File    = $file.FullName.Substring($root.Length).TrimStart('\', '/')
                     Line    = $i + 1
                     Rule    = $ruleName
                     Snippet = $line.Trim()

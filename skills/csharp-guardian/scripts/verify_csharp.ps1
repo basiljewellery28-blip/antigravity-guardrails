@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Automated C# (.NET) verification script for Antigravity skills.
 .DESCRIPTION
@@ -27,15 +27,23 @@ try {
         exit 1
     }
 
+    if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+        Write-Host "❌ 'dotnet' not found on PATH. Cannot verify." -ForegroundColor Red
+        exit 1
+    }
+
     $targetFile = $targets[0].FullName
     Write-Host "🎯 Target solution/project: $targetFile" -ForegroundColor Green
+
+    # Continue: under Stop, Windows PowerShell 5.1 throws on any native stderr line.
+    $ErrorActionPreference = "Continue"
 
     # Step 1: Build with WarnAsError
     Write-Host "🔨 Compiling with dotnet build --warnaserror..." -ForegroundColor Cyan
     $buildOutput = dotnet build $targetFile --warnaserror 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Host "❌ Build failed:" -ForegroundColor Red
-        Write-Host $buildOutput
+        $buildOutput | ForEach-Object { "$_" } | Write-Host
         exit $LASTEXITCODE
     }
     Write-Host "✅ Build succeeded with ZERO warnings!" -ForegroundColor Green
@@ -45,12 +53,12 @@ try {
     $testOutput = dotnet test $targetFile --no-build --logger "console;verbosity=normal" 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Host "❌ Test run failed:" -ForegroundColor Red
-        Write-Host $testOutput
+        $testOutput | ForEach-Object { "$_" } | Write-Host
         exit $LASTEXITCODE
     }
 
     Write-Host "✅ All tests passed cleanly!" -ForegroundColor Green
-    Write-Host $testOutput
+    $testOutput | ForEach-Object { "$_" } | Write-Host
     exit 0
 }
 finally {

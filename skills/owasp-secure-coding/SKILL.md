@@ -9,6 +9,9 @@ description: >-
 
 This skill enforces proactive application security standards based on the **OWASP Top 10** across all web applications, APIs, and microservices.
 
+> **Reference** (load on demand):
+> - [OWASP Top 10 Secure Coding Playbook](./references/owasp_top_10_playbook.md): Injection, broken access control, and cryptographic failures.
+
 ---
 
 ## Non-Negotiable Invariants

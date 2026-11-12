@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Installs Antigravity pre-commit guardrail hooks into a Git repository.
 .DESCRIPTION
@@ -37,7 +37,7 @@ if (-not $scriptDir) {
     $scriptDir = (Get-Location).Path
 }
 
-$sourceHook = Join-Path (Resolve-Path $scriptDir) "scripts\git-hooks\pre-commit"
+$sourceHook = Join-Path (Join-Path (Join-Path (Resolve-Path $scriptDir) "scripts") "git-hooks") "pre-commit"
 $targetHook = Join-Path $hooksDir "pre-commit"
 
 if (-not (Test-Path $sourceHook)) {
@@ -45,7 +45,14 @@ if (-not (Test-Path $sourceHook)) {
     exit 1
 }
 
-Copy-Item -Path $sourceHook -Destination $targetHook -Force
+# Rewrite as LF: an autocrlf checkout gives the source CRLF, and "#!/usr/bin/env sh\r" breaks the hook.
+$hookText = [System.IO.File]::ReadAllText($sourceHook) -replace "`r`n", "`n"
+if ((Test-Path $targetHook) -and ([System.IO.File]::ReadAllText($targetHook) -ne $hookText)) {
+    Copy-Item -Path $targetHook -Destination "$targetHook.bak" -Force
+    Write-Host "💾 Existing pre-commit hook backed up to: $targetHook.bak" -ForegroundColor Yellow
+}
+[System.IO.File]::WriteAllText($targetHook, $hookText, (New-Object System.Text.UTF8Encoding($false)))
+if ($PSVersionTable.PSEdition -eq "Core" -and -not $IsWindows) { chmod +x $targetHook }
 Write-Host "✅ Pre-commit hook installed to: $targetHook" -ForegroundColor Green
 Write-Host "💡 Any 'git commit' in '$resolvedTarget' will now automatically run Secret Sentinel & OWASP checks before completing." -ForegroundColor Yellow
 Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor Cyan

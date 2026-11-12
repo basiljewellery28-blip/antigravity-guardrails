@@ -35,10 +35,12 @@ if [ ! -f "$OWASP_SCRIPT" ]; then
     fi
 fi
 
+RAN=0
+
 # Run Secret Sentinel
 if [ -f "$SECRET_SCRIPT" ]; then
-    "$POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "$SECRET_SCRIPT"
-    if [ $? -ne 0 ]; then
+    RAN=$((RAN + 1))
+    if ! "$POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "$SECRET_SCRIPT"; then
         echo "❌ [Antigravity Hook] Commit ABORTED: Exposed secrets detected."
         exit 1
     fi
@@ -46,11 +48,17 @@ fi
 
 # Run OWASP Pattern Scanner
 if [ -f "$OWASP_SCRIPT" ]; then
-    "$POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "$OWASP_SCRIPT"
-    if [ $? -ne 0 ]; then
+    RAN=$((RAN + 1))
+    if ! "$POWERSHELL" -NoProfile -ExecutionPolicy Bypass -File "$OWASP_SCRIPT"; then
         echo "❌ [Antigravity Hook] Commit ABORTED: Dangerous insecure code patterns detected."
         exit 1
     fi
+fi
+
+# Don't claim a clean pass when nothing ran (scanner scripts not installed).
+if [ "$RAN" -eq 0 ]; then
+    echo "⚠️ [Antigravity Hook] No scanner scripts found (run install.ps1 / install.sh); nothing was checked."
+    exit 0
 fi
 
 echo "✅ [Antigravity Hook] All security pre-commit checks passed cleanly!"
