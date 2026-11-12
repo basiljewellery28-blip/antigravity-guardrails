@@ -68,6 +68,7 @@ Instructions requiring the agent to display the passing command and output in it
 1. **Self-Contained & Deterministic**: The script must return exit code `0` on success and non-zero on failure.
 2. **Cross-Platform Awareness**: Handle Windows PowerShell paths safely; prefer cross-platform runners (`npx`, `uv`, `mvnw`, `gradlew`, `cargo`, etc.) where available.
 3. **Clean Output**: Provide readable terminal output so the agent can parse error line numbers and repair defects autonomously.
+4. **Fail Closed**: A gate must exit non-zero when it could not verify (tool missing, wrong path, required step skipped). A scanner may pass an existing folder that simply contains nothing it applies to.
 
 ---
 
@@ -76,7 +77,7 @@ Instructions requiring the agent to display the passing command and output in it
 1. Fork the repository.
 2. Create your feature branch (`git checkout -b feature/rust-guardian`).
 3. Run `.\install.ps1` to test local installation into Antigravity.
-4. Verify that your verification scripts run cleanly.
+4. Verify that your verification scripts run cleanly. Run `tests/run_tests.ps1` under both Windows PowerShell 5.1 (`powershell -File tests/run_tests.ps1`) and `pwsh`, and add a case there for any new gate behaviour.
 5. Commit your changes (`git commit -m "feat: add rust-guardian skill with cargo test verification"`).
 6. Open a Pull Request with a clear description and sample verification output!
 

@@ -50,3 +50,5 @@ The script validates that:
 2. No unused imports or orphan variables were introduced.
 3. The diff size is strictly proportional to the task requested.
 
+The script exits non-zero when run outside a git repository, because there is no diff to inspect.
+

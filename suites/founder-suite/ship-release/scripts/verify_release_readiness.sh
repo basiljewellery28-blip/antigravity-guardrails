@@ -63,7 +63,9 @@ if [ -n "$SCAN_SH" ]; then
 elif [ -n "$SCAN_PS" ] && command -v pwsh >/dev/null 2>&1; then
     pwsh -NoProfile -File "$SCAN_PS" -ProjectPath "$TARGET_DIR" || BLOCKERS+=("Security secret scan reported violations.")
 else
-    echo "  Security scan script (or pwsh to run its .ps1) not found; secret check SKIPPED (not verified)."
+    # Shipping without the secret check would be a false "ready"; install the security-secret-sentinel skill.
+    echo "  Security scan script (or pwsh to run its .ps1) not found; secret check NOT verified."
+    BLOCKERS+=("Secret scan could not run: security-secret-sentinel scanner (or pwsh) not found.")
 fi
 
 echo -e "\n=========================================================="
