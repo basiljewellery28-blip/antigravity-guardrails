@@ -41,6 +41,14 @@ try {
     Write-Host "✅ go vet passed cleanly!" -ForegroundColor Green
 
     # Step 2: go test with race detection
+    # -race needs cgo + a C compiler. Dropping it would be a false pass on a required
+    # step, so fail with the cause instead of Go's terse "-race requires cgo" error.
+    # Go itself sets CGO_ENABLED=0 by default when no C compiler is on PATH.
+    if ((go env CGO_ENABLED) -ne "1") {
+        Write-Host "❌ Cannot run the race detector: cgo is disabled (no C compiler found, or CGO_ENABLED=0)." -ForegroundColor Red
+        Write-Host "   Fix: install gcc (e.g. MSYS2 mingw-w64 on Windows) and put it on PATH, set CGO_ENABLED=1, or run in WSL/Linux." -ForegroundColor Red
+        exit 1
+    }
     Write-Host "🧪 Running go test -race ./..." -ForegroundColor Cyan
     $testOutput = go test -race ./... 2>&1
     if ($LASTEXITCODE -ne 0) {
