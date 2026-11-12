@@ -64,7 +64,7 @@ foreach ($file in $files) {
             $regex = $secretPatterns[$patternName]
             # Case-sensitive: key prefixes are. Skip documented dummy tokens (AKIAIOSFODNN7EXAMPLE),
             # judged on the token itself so "example" elsewhere on the line cannot hide a real key.
-            if ($line -cmatch $regex -and $Matches[0] -notmatch 'EXAMPLE|PLACEHOLDER|REDACTED') {
+            if ($line -cmatch $regex -and $Matches[0] -cnotmatch 'EXAMPLE|PLACEHOLDER|REDACTED') {
                 $redacted = $line.Replace($Matches[0], "<REDACTED>").Trim()
                 $redacted = $redacted.Substring(0, [math]::Min(60, $redacted.Length))
                 $findings += [PSCustomObject]@{

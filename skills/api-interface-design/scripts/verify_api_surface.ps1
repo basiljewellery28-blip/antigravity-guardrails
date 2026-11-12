@@ -27,8 +27,9 @@ $routeFiles = @(Get-ChildItem -Path $root -Include @("*.ts", "*.js", "*.py", "*.
     })
 
 if ($routeFiles.Count -eq 0) {
-    Write-Host "ℹ️ No dedicated API/route files detected in current path." -ForegroundColor Yellow
-    exit 0
+    # Nothing found means nothing was verified; usually -ProjectPath points at the wrong folder.
+    Write-Host "❌ No API/route files detected under $root; API surface NOT verified. Pass -ProjectPath pointing at your API code." -ForegroundColor Red
+    exit 1
 }
 
 Write-Host "📊 Located $($routeFiles.Count) API/route file(s) to verify." -ForegroundColor Cyan
@@ -54,7 +55,7 @@ if ($warnings -eq 0) {
     Write-Host "✅ [API Surface] All API signatures and route boundaries passed cleanly!" -ForegroundColor Green
     exit 0
 } else {
-    Write-Host "⚠️ [API Surface] Found $warnings potential interface design warning(s). Review above." -ForegroundColor Yellow
-    exit 0
+    Write-Host "❌ [API Surface] Found $warnings interface design violation(s). Fix them above and re-run." -ForegroundColor Red
+    exit 1
 }
 

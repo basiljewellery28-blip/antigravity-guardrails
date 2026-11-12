@@ -59,3 +59,5 @@ The script validates:
 2. Error responses adhere to structured payloads.
 3. No raw untyped dictionaries/objects are exposed at entry points.
 
+It exits non-zero on any violation (including `catch (e: any)`; use `unknown`) and when it finds no route files under `-ProjectPath`. Treat a non-zero exit as a blocker.
+

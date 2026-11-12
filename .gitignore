@@ -8,7 +8,6 @@ build/
 # Research & External Clones (Keep external repos out of main git tree)
 research/
 temp/
-tests/
 
 # OS & Editor
 .DS_Store
