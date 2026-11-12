@@ -45,7 +45,8 @@ if ($flagged -eq 0) {
     Write-Host "✅ [Code Simplifier] All files maintain clean, shallow nesting depth!" -ForegroundColor Green
     exit 0
 } else {
-    Write-Host "💡 Found $flagged file(s) with deep nesting. Consider refactoring with guard clauses." -ForegroundColor Yellow
-    exit 0
+    # A gate that warns but exits 0 lets the agent report "verified" over the very code it flagged.
+    Write-Host "❌ Found $flagged file(s) with deep nesting. Refactor with guard clauses / early returns and re-run." -ForegroundColor Red
+    exit 1
 }
 

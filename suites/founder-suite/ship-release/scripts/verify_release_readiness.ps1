@@ -26,8 +26,11 @@ Write-Host "`n[1/4] Checking working tree cleanliness..." -ForegroundColor Gray
 $uncommitted = @()
 $gitOk = $false
 if (Get-Command git -ErrorAction SilentlyContinue) {
+    # Continue: under Stop, Windows PowerShell 5.1 turns git's "not a git repository" stderr into a crash.
+    $ErrorActionPreference = "Continue"
     $uncommitted = @(git -C $TargetDirectory status --porcelain 2>$null)
     $gitOk = ($LASTEXITCODE -eq 0)
+    $ErrorActionPreference = "Stop"
 }
 if (-not $gitOk) {
     Write-Host "  Warning: could not read git status for $TargetDirectory (not a git repo or git missing); cleanliness NOT verified." -ForegroundColor Yellow
@@ -76,7 +79,9 @@ if ($scanScript) {
         $blockers += "Security secret scan reported violations."
     }
 } else {
-    Write-Host "  Security scan script not found; secret check SKIPPED (not verified)." -ForegroundColor Yellow
+    # Shipping without the secret check would be a false "ready"; install the security-secret-sentinel skill.
+    Write-Host "  Security scan script not found; secret check NOT verified." -ForegroundColor Red
+    $blockers += "Secret scan could not run: security-secret-sentinel scanner not found."
 }
 
 Write-Host "`n==========================================================" -ForegroundColor Cyan

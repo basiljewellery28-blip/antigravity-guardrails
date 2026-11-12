@@ -60,6 +60,8 @@ You must run automated compilation and test suites before reporting completion.
    ```powershell
    powershell -File ./skills/java-guardian/scripts/verify_java.ps1
    ```
+
+   For Maven projects the script exits non-zero if the build runs zero tests, so add at least one test before the gate can pass.
    Or run the wrapper directly:
    ```bash
    # Maven

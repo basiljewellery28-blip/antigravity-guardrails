@@ -58,6 +58,8 @@ You must run automated static analysis and test validation before reporting comp
    ```powershell
    powershell -File ./skills/python-guardian/scripts/verify_py.ps1
    ```
+
+   The script exits non-zero if mypy is not installed, because type checking is required and is never skipped; install mypy in the project environment first.
    Or run the local toolchain:
    ```bash
    # Type check
