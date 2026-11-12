@@ -11,6 +11,9 @@ Adapted from Julius Brussee's Caveman principles and Google technical communicat
 
 The purpose of this skill is to maximize signal-to-noise ratio: **every token read and written costs computation, latency, and context window space**. Only fluff dies; all technical facts, code precision, and compiler evidence survive.
 
+> **Reference** (load on demand):
+> - [High-Density vs. Verbose Response Reference](./references/compression_voice.md): Verbose vs. high-density examples for a bug fix and for architecture advice.
+
 ---
 
 ## The Core Laws of High-Density Output

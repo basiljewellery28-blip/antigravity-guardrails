@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Automated multi-stack seam test runner for Antigravity TDD.
 .DESCRIPTION
@@ -22,41 +22,50 @@ if (-not (Test-Path $TestFile)) {
 $ext = [System.IO.Path]::GetExtension($TestFile).ToLower()
 Write-Host "🎯 Running targeted seam test for: $TestFile" -ForegroundColor Cyan
 
-$cmd = ""
+$exe = ""
+$cmdArgs = @()
+$isWin = [System.IO.Path]::DirectorySeparatorChar -eq '\'
 
 switch ($ext) {
     { $_ -in ".ts", ".tsx", ".js", ".jsx" } {
-        if (Test-Path "package.json") {
-            if (Test-Path "pnpm-lock.yaml") {
-                $cmd = "pnpm test -- $TestFile"
-            } elseif (Test-Path "yarn.lock") {
-                $cmd = "yarn test $TestFile"
-            } else {
-                $cmd = "npx vitest run $TestFile"
-            }
+        if (-not (Test-Path "package.json")) {
+            Write-Host "❌ No package.json in $(Get-Location); run from the project root." -ForegroundColor Red
+            exit 1
+        }
+        if (Test-Path "pnpm-lock.yaml") {
+            $exe = "pnpm"; $cmdArgs = @("test", "--", $TestFile)
+        } elseif (Test-Path "yarn.lock") {
+            $exe = "yarn"; $cmdArgs = @("test", $TestFile)
+        } else {
+            # --no-install: don't silently download vitest into a project that doesn't use it.
+            $exe = "npx"; $cmdArgs = @("--no-install", "vitest", "run", $TestFile)
         }
     }
     ".py" {
         if (Test-Path "uv.lock") {
-            $cmd = "uv run pytest $TestFile"
+            $exe = "uv"; $cmdArgs = @("run", "pytest", $TestFile)
         } elseif (Test-Path "poetry.lock") {
-            $cmd = "poetry run pytest $TestFile"
+            $exe = "poetry"; $cmdArgs = @("run", "pytest", $TestFile)
         } else {
-            $cmd = "pytest $TestFile"
+            $exe = "pytest"; $cmdArgs = @($TestFile)
         }
     }
     ".go" {
+        # go treats a bare "src/pkg" as an import path; it needs a ./ prefix to mean a directory.
         $dir = [System.IO.Path]::GetDirectoryName($TestFile)
-        $cmd = "go test -v $dir"
+        if ([string]::IsNullOrEmpty($dir)) { $dir = "." }
+        elseif (-not [System.IO.Path]::IsPathRooted($dir)) { $dir = "./" + $dir.Replace('\', '/') }
+        $exe = "go"; $cmdArgs = @("test", "-v", $dir)
     }
     ".cs" {
-        $cmd = "dotnet test"
+        $exe = "dotnet"; $cmdArgs = @("test")
     }
     ".java" {
-        if (Test-Path "mvnw.cmd") {
-            $cmd = ".\mvnw.cmd test"
+        $mvnw = if ($isWin) { "mvnw.cmd" } else { "mvnw" }
+        if (Test-Path $mvnw) {
+            $exe = (Resolve-Path $mvnw).Path; $cmdArgs = @("test")
         } else {
-            $cmd = "mvn test"
+            $exe = "mvn"; $cmdArgs = @("test")
         }
     }
     default {
@@ -65,11 +74,18 @@ switch ($ext) {
     }
 }
 
-Write-Host "🚀 Executing: $cmd" -ForegroundColor Cyan
-$output = Invoke-Expression $cmd 2>&1
+if (-not (Get-Command $exe -ErrorAction SilentlyContinue)) {
+    Write-Host "❌ '$exe' not found on PATH. Cannot run test." -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "🚀 Executing: $exe $($cmdArgs -join ' ')" -ForegroundColor Cyan
+# Continue: under Stop, Windows PowerShell 5.1 throws on any native stderr line.
+$ErrorActionPreference = "Continue"
+$output = & $exe @cmdArgs 2>&1
 $exitCode = $LASTEXITCODE
 
-Write-Host $output
+$output | ForEach-Object { "$_" } | Write-Host
 if ($exitCode -eq 0) {
     Write-Host "🟢 [TDD Seam Runner] Test PASSED (GREEN)" -ForegroundColor Green
 } else {

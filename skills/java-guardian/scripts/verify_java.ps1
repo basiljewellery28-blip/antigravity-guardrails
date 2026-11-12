@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Automated Java verification script for Antigravity skills.
 .DESCRIPTION
@@ -16,35 +16,47 @@ Push-Location $ProjectPath
 try {
     Write-Host "🔍 [Java Guardian] Inspecting Java project at: $(Resolve-Path .)" -ForegroundColor Cyan
 
-    $cmd = ""
-    if (Test-Path "mvnw.cmd") {
+    $isWin = [System.IO.Path]::DirectorySeparatorChar -eq '\'
+    $mvnw = if ($isWin) { "mvnw.cmd" } else { "mvnw" }
+    $gradlew = if ($isWin) { "gradlew.bat" } else { "gradlew" }
+
+    $exe = ""
+    if (Test-Path $mvnw) {
         Write-Host "📦 Detected Maven Wrapper (mvnw)" -ForegroundColor Green
-        $cmd = ".\mvnw.cmd test"
+        $exe = (Resolve-Path $mvnw).Path
     } elseif (Test-Path "pom.xml") {
         Write-Host "📦 Detected Maven (pom.xml)" -ForegroundColor Green
-        $cmd = "mvn test"
-    } elseif (Test-Path "gradlew.bat") {
+        $exe = "mvn"
+    } elseif (Test-Path $gradlew) {
         Write-Host "📦 Detected Gradle Wrapper (gradlew)" -ForegroundColor Green
-        $cmd = ".\gradlew.bat test"
-    } elseif (Test-Path "build.gradle" -or (Test-Path "build.gradle.kts")) {
+        $exe = (Resolve-Path $gradlew).Path
+    } elseif ((Test-Path "build.gradle") -or (Test-Path "build.gradle.kts")) {
         Write-Host "📦 Detected Gradle (build.gradle)" -ForegroundColor Green
-        $cmd = "gradle test"
+        $exe = "gradle"
     } else {
         Write-Host "❌ No pom.xml or build.gradle located in project root." -ForegroundColor Red
         exit 1
     }
 
-    Write-Host "🚀 Executing build & test command: $cmd" -ForegroundColor Cyan
-    $output = Invoke-Expression $cmd 2>&1
+    if (-not (Get-Command $exe -ErrorAction SilentlyContinue)) {
+        Write-Host "❌ '$exe' not found on PATH. Install it or add a build wrapper." -ForegroundColor Red
+        exit 1
+    }
+
+    Write-Host "🚀 Executing build & test command: $exe test" -ForegroundColor Cyan
+    # Continue: under Stop, Windows PowerShell 5.1 throws on any native stderr line.
+    $ErrorActionPreference = "Continue"
+    $output = & $exe test 2>&1
     $exitCode = $LASTEXITCODE
+    $ErrorActionPreference = "Stop"
 
     if ($exitCode -eq 0) {
         Write-Host "✅ [Java Guardian] Build & tests passed with ZERO errors!" -ForegroundColor Green
-        Write-Host $output
+        $output | ForEach-Object { "$_" } | Write-Host
         exit 0
     } else {
-        Write-Host "❌ [Java Guardian] Execution failed with exit code $exitCode:" -ForegroundColor Red
-        Write-Host $output
+        Write-Host "❌ [Java Guardian] Execution failed with exit code ${exitCode}:" -ForegroundColor Red
+        $output | ForEach-Object { "$_" } | Write-Host
         exit $exitCode
     }
 }

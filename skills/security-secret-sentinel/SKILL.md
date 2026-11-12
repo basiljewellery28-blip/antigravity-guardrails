@@ -9,6 +9,9 @@ description: >-
 
 This skill enforces a **Zero Leaked Secrets Policy** across all code, configuration files, and git commits.
 
+> **Reference** (load on demand):
+> - [Modern Secret & Credential Management Reference](./references/secret_management.md): Secrets hierarchy, and remediation of accidental secret leaks.
+
 ---
 
 ## Non-Negotiable Invariants

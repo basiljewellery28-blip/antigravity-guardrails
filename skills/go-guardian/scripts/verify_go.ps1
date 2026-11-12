@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Automated Go verification script for Antigravity skills.
 .DESCRIPTION
@@ -21,12 +21,21 @@ try {
         exit 1
     }
 
+    if (-not (Get-Command go -ErrorAction SilentlyContinue)) {
+        Write-Host "❌ 'go' not found on PATH. Cannot verify." -ForegroundColor Red
+        exit 1
+    }
+
+    # Continue: under Stop, Windows PowerShell 5.1 throws on any native stderr line
+    # (go writes "FAIL"/package progress to stderr).
+    $ErrorActionPreference = "Continue"
+
     # Step 1: go vet
     Write-Host "🔬 Running go vet ./..." -ForegroundColor Cyan
     $vetOutput = go vet ./... 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Host "❌ go vet found issues:" -ForegroundColor Red
-        Write-Host $vetOutput
+        $vetOutput | ForEach-Object { "$_" } | Write-Host
         exit $LASTEXITCODE
     }
     Write-Host "✅ go vet passed cleanly!" -ForegroundColor Green
@@ -36,12 +45,12 @@ try {
     $testOutput = go test -race ./... 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Host "❌ Go tests or race conditions detected:" -ForegroundColor Red
-        Write-Host $testOutput
+        $testOutput | ForEach-Object { "$_" } | Write-Host
         exit $LASTEXITCODE
     }
 
     Write-Host "✅ All Go tests passed with race detector clean!" -ForegroundColor Green
-    Write-Host $testOutput
+    $testOutput | ForEach-Object { "$_" } | Write-Host
     exit 0
 }
 finally {

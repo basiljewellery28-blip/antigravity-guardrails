@@ -9,6 +9,9 @@ description: >-
 
 This skill enforces software supply chain security, preventing vulnerable packages and unvetted dependencies from entering production codebases.
 
+> **Reference** (load on demand):
+> - [Software Supply Chain Security Reference](./references/supply_chain_security.md): Threat vectors in modern packaging, and defensive controls.
+
 ---
 
 ## Non-Negotiable Invariants

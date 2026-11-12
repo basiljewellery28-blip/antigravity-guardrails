@@ -9,6 +9,9 @@ description: >-
 
 This skill enforces strict, production-grade Rust engineering following official Rust API Guidelines and zero-defect compiler standards.
 
+> **Reference** (load on demand):
+> - [Idiomatic Rust Engineering Style Reference](./references/rust_style.md): Type design and traits, concurrency and async, and performance and allocations.
+
 ---
 
 ## Phase 1: Environment & Workspace Discovery

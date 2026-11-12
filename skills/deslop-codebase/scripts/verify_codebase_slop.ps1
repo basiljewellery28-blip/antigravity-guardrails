@@ -19,24 +19,32 @@ Write-Host "==========================================================" -Foregro
 
 $violations = @()
 
+if (-not (Test-Path -LiteralPath $TargetDirectory -PathType Container)) {
+    Write-Host "  FAILED: Target directory not found: $TargetDirectory" -ForegroundColor Red
+    exit 1
+}
+$root = (Resolve-Path -LiteralPath $TargetDirectory).Path
+
 # 1. Scan source files for AI slop anti-patterns
 Write-Host "`n[1/2] Scanning source files for slop patterns and stubs..." -ForegroundColor Gray
 
-$sourceFiles = @(Get-ChildItem -Path $TargetDirectory -Recurse -File -Include *.ts, *.js, *.py, *.go, *.rs, *.cs -ErrorAction SilentlyContinue |
-    Where-Object { $_.FullName -notmatch 'node_modules|\.git|obj|bin|dist|vendor|research' })
+# Exclusions match whole path segments below the scan root so a parent folder name cannot hide every file.
+$sourceFiles = @(Get-ChildItem -LiteralPath $root -Recurse -File -Include *.ts, *.tsx, *.js, *.jsx, *.py, *.go, *.rs, *.cs -ErrorAction SilentlyContinue |
+    Where-Object { $_.FullName.Substring($root.Length) -notmatch '(^|[\\/])(node_modules|\.git|obj|bin|dist|vendor|research)[\\/]' })
 
 $slopChecks = @(
-    @{ Name = "Empty Exception Catch"; Pattern = 'catch\s*(?:\([^)]*\))?\s*\{\s*\}' },
-    @{ Name = "Empty Except Block (Python)"; Pattern = 'except(?:\s+[^:]+)?:\s*pass\b' },
+    @{ Name = "Empty Exception Catch"; Pattern = 'catch\s*(?:\([^)]*\))?\s*\{\s*(?:/\*(?:(?!\*/)[\s\S])*\*/|//[^\r\n]*)?\s*\}|\.catch\(\s*(?:\(\s*\w*\s*\)|\w+)\s*=>\s*\{\s*\}\s*\)' },
+    @{ Name = "Empty Except Block (Python)"; Pattern = 'except(?:\s+[^:\r\n]+)?:\s*pass\b' },
     @{ Name = "Unimplemented Stub (TODO/FIXME)"; Pattern = '\b(?:TODO|FIXME|XXX)\b\s*:' },
-    @{ Name = "Placeholder Logic Stub"; Pattern = '/\*\s*(?:implement|logic)\s+here\s*\*/' }
+    @{ Name = "Placeholder Logic Stub"; Pattern = '(?i)/\*\s*(?:implement|logic)\s+here\s*\*/' }
 )
 
 $flaggedCount = 0
 foreach ($file in $sourceFiles) {
     $content = [System.IO.File]::ReadAllText($file.FullName)
     foreach ($chk in $slopChecks) {
-        if ($content -match $chk.Pattern) {
+        # Case-sensitive: "todo: Todo[]" is a field name, not a stub marker.
+        if ($content -cmatch $chk.Pattern) {
             $violations += "Slop Detected ($($chk.Name)) in: $($file.FullName)"
             $flaggedCount++
         }

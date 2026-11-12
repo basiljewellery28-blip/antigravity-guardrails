@@ -24,11 +24,13 @@ Every skill lives inside `skills/<skill-name>/`:
 ```text
 skills/<skill-name>/
 ├── SKILL.md                          # Required: Frontmatter + 4-phase protocol
-├── scripts/                          # Required: Automated verification runner
-│   └── verify_<skill>.ps1            # Cross-platform / PowerShell execution script
+├── scripts/                          # Required unless the skill is a pure prompt invariant (e.g. token-compressor)
+│   └── verify_<skill>.ps1            # Conventional name; task-specific names (scan_secrets.ps1) are fine
 └── references/                       # Optional: Detailed architectural & style guides
     └── <topic>_style.md              # Loaded on-demand via progressive disclosure
 ```
+
+Every file in `references/` must be linked from `SKILL.md`. An unlinked reference is never loaded.
 
 ---
 

@@ -15,7 +15,7 @@
 param (
     [ValidateSet("all", "document", "founder", "cloud", "core")]
     [string]$Suite = "all",
-    [string]$TargetSkillsDir = (Join-Path $HOME ".gemini\config\skills"),
+    [string]$TargetSkillsDir = (Join-Path (Join-Path (Join-Path $HOME ".gemini") "config") "skills"),
     [switch]$Uninstall
 )
 
@@ -26,7 +26,8 @@ Write-Host "==========================================================" -Foregro
 Write-Host "   Antigravity Modular Suite Installer" -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 
-$scriptRoot = (Get-Location).Path
+# Not Get-Location: running the script from another directory must still find the repo.
+$scriptRoot = $PSScriptRoot
 $suitesDir = Join-Path $scriptRoot "suites"
 $coreSkillsDir = Join-Path $scriptRoot "skills"
 
@@ -65,7 +66,7 @@ foreach ($srcParent in $targetDirs) {
     }
 
     $subSkills = @(Get-ChildItem -Path $srcParent -Directory -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -notmatch 'node_modules|\.git|vendor|research' })
+        Where-Object { $_.Name -notmatch '^(node_modules|\.git|vendor|research)$' })
 
     foreach ($sk in $subSkills) {
         $destPath = Join-Path $TargetSkillsDir $sk.Name
@@ -78,6 +79,8 @@ foreach ($srcParent in $targetDirs) {
             }
         } else {
             Write-Host "Installing: $($sk.Name) -> $destPath" -ForegroundColor Green
+            # Copy-Item into an existing dir nests it (dest\name\name); replace like install-suite.sh does.
+            if (Test-Path $destPath) { Remove-Item -Path $destPath -Recurse -Force }
             Copy-Item -Path $sk.FullName -Destination $destPath -Recurse -Force
             $installedCount++
         }

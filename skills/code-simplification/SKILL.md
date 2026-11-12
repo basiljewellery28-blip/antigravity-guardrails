@@ -11,6 +11,9 @@ Adapted from Addy Osmani's engineering skills and modern refactoring disciplines
 
 The goal of simplification is not fewer lines of code—it is code that is **faster to read, understand, modify, and debug**. Every simplification must pass this test: *"Would a new engineer understand this faster than the original?"*
 
+> **Reference** (load on demand):
+> - [Core Refactoring & Simplification Patterns](./references/refactoring_patterns.md): Replacing nested conditionals with guard clauses, and decomposing heavy chained pipelines.
+
 ---
 
 ## The Five Principles of Simplification

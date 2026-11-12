@@ -3,8 +3,13 @@
 # One-click global installer for Antigravity Polyglot Engineering Skills (Linux / macOS / Git Bash).
 #
 
-INCLUDE_SUITES="${1:-false}"
 set -euo pipefail
+
+INCLUDE_SUITES="${1:-false}"
+case "$INCLUDE_SUITES" in
+    false|true|--include-suites) ;;
+    *) echo "Usage: $0 [--include-suites]" >&2; exit 2 ;;
+esac
 
 CYAN='\033[0;36m'
 GREEN='\033[0;32m'
@@ -46,7 +51,8 @@ done
 
 if [ "$INCLUDE_SUITES" = "true" ] || [ "$INCLUDE_SUITES" = "--include-suites" ]; then
     echo -e "\n${CYAN}📦 Installing modular domain suites (Document, Founder, Cloud)...${NC}"
-    "${SCRIPT_DIR}/install-suite.sh" all "${GLOBAL_SKILLS_DIR}"
+    # bash, not direct exec: the file is not executable after a fresh clone.
+    bash "${SCRIPT_DIR}/install-suite.sh" all "${GLOBAL_SKILLS_DIR}"
 fi
 
 echo ""

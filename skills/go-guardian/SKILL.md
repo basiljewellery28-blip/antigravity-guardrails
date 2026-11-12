@@ -9,6 +9,9 @@ description: >-
 
 This skill enforces strict, production-grade Go engineering based on Google's Go Style Decisions and Effective Go standards.
 
+> **Reference** (load on demand):
+> - [Google Go Style & Philosophy Reference](./references/go_style.md): Package organization and naming, error wrapping and handling, and goroutine and memory management.
+
 ---
 
 ## Phase 1: Environment & Module Discovery

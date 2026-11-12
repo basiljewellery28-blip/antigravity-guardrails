@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Automated Rust verification script for Antigravity skills.
 .DESCRIPTION
@@ -22,12 +22,21 @@ try {
         exit 1
     }
 
+    if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
+        Write-Host "❌ 'cargo' not found on PATH. Cannot verify." -ForegroundColor Red
+        exit 1
+    }
+
+    # Continue: cargo writes all progress to stderr, which Windows PowerShell 5.1 turns into
+    # terminating errors under Stop (false failure on a clean build).
+    $ErrorActionPreference = "Continue"
+
     # Step 1: cargo check
     Write-Host "🔨 Running cargo check --all-targets..." -ForegroundColor Cyan
     $checkOutput = cargo check --all-targets 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Host "❌ cargo check failed:" -ForegroundColor Red
-        Write-Host $checkOutput
+        $checkOutput | ForEach-Object { "$_" } | Write-Host
         exit $LASTEXITCODE
     }
     Write-Host "✅ Syntax & type check passed!" -ForegroundColor Green
@@ -37,7 +46,7 @@ try {
     $clippyOutput = cargo clippy --all-targets --all-features -- -D warnings 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Host "❌ cargo clippy found linter violations:" -ForegroundColor Red
-        Write-Host $clippyOutput
+        $clippyOutput | ForEach-Object { "$_" } | Write-Host
         exit $LASTEXITCODE
     }
     Write-Host "✅ cargo clippy passed with ZERO warnings!" -ForegroundColor Green
@@ -47,12 +56,12 @@ try {
     $testOutput = cargo test 2>&1
     if ($LASTEXITCODE -ne 0) {
         Write-Host "❌ Cargo tests failed:" -ForegroundColor Red
-        Write-Host $testOutput
+        $testOutput | ForEach-Object { "$_" } | Write-Host
         exit $LASTEXITCODE
     }
 
     Write-Host "✅ All Cargo test suites passed cleanly!" -ForegroundColor Green
-    Write-Host $testOutput
+    $testOutput | ForEach-Object { "$_" } | Write-Host
     exit 0
 }
 finally {

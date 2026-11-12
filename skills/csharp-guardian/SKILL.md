@@ -9,6 +9,9 @@ description: >-
 
 This skill enforces strict, production-grade C# engineering adhering to modern .NET practices and zero-defect compiler standards.
 
+> **Reference** (load on demand):
+> - [Modern C# (.NET) Style & Architecture Reference](./references/csharp_style.md): Type safety and language features, async programming, and dependency injection with service lifetimes.
+
 ---
 
 ## Phase 1: Environment & Solution Discovery

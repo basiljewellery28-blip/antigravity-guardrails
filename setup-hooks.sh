@@ -39,7 +39,15 @@ if [ ! -f "${SOURCE_HOOK}" ]; then
     exit 1
 fi
 
-cp "${SOURCE_HOOK}" "${TARGET_HOOK}"
+# Strip CR: an autocrlf checkout gives the source CRLF, and "#!/usr/bin/env sh\r" breaks the hook.
+HOOK_TMP="$(mktemp)"
+tr -d '\r' < "${SOURCE_HOOK}" > "${HOOK_TMP}"
+if [ -f "${TARGET_HOOK}" ] && ! cmp -s "${HOOK_TMP}" "${TARGET_HOOK}"; then
+    cp "${TARGET_HOOK}" "${TARGET_HOOK}.bak"
+    echo -e "${YELLOW}💾 Existing pre-commit hook backed up to: ${TARGET_HOOK}.bak${NC}"
+fi
+cp "${HOOK_TMP}" "${TARGET_HOOK}"
+rm -f "${HOOK_TMP}"
 chmod +x "${TARGET_HOOK}"
 
 echo -e "${GREEN}✅ Pre-commit hook installed to: ${TARGET_HOOK}${NC}"

@@ -9,6 +9,9 @@ description: >-
 
 Derived from Andrej Karpathy's foundational observations on LLM coding pitfalls. This skill counters the natural tendency of AI agents to overengineer, mutate adjacent working code, and generate speculative abstractions.
 
+> **Reference** (load on demand):
+> - [Andrej Karpathy's LLM Coding Pitfalls & Antidotes](./references/karpathy_pitfalls.md): Over-engineering, silent assumptions, adjacent code changes, and speculative error handling.
+
 ---
 
 ## The Three Laws of Surgical Coding

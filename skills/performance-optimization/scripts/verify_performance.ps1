@@ -25,11 +25,15 @@ $violations = @()
 Write-Host "`n[1/3] Inspecting compiled bundle and asset budgets..." -ForegroundColor Gray
 $buildDirs = @("dist", "build", "out", "public/build", "target")
 $checkedAssets = 0
+# Whole-segment match on the path below the project root: bare 'bin'/'obj'/'research' substrings
+# also matched e.g. "cabinet-api", excluding every file and passing vacuously.
+$root = (Get-Location).Path
+$excludeRe = '[\\/](node_modules|\.git|obj|bin|dist|vendor|research)[\\/]'
 
 foreach ($dir in $buildDirs) {
     if (Test-Path $dir) {
         $assets = @(Get-ChildItem -Path $dir -Recurse -File -Include *.js, *.css, *.wasm -ErrorAction SilentlyContinue |
-            Where-Object { $_.FullName -notmatch 'node_modules|\.git|vendor' })
+            Where-Object { $_.FullName.Substring($root.Length) -notmatch '[\\/](node_modules|\.git|vendor)[\\/]' })
         
         foreach ($asset in $assets) {
             $checkedAssets++
@@ -57,7 +61,7 @@ $antiPatterns = @(
 )
 
 $sourceFiles = @(Get-ChildItem -Path . -Recurse -File -Include *.ts, *.js, *.py, *.go, *.rs, *.cs -ErrorAction SilentlyContinue |
-    Where-Object { $_.FullName -notmatch 'node_modules|\.git|obj|bin|dist|vendor|research' })
+    Where-Object { $_.FullName.Substring($root.Length) -notmatch $excludeRe })
 
 $flaggedFiles = 0
 foreach ($file in $sourceFiles) {

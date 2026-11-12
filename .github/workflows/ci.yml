@@ -40,16 +40,53 @@ jobs:
         run: |
           pwsh -File ./skills/owasp-secure-coding/scripts/verify_sast_patterns.ps1
 
-      - name: Test Global Installer (PowerShell)
+      # CI's pwsh is lenient about encoding; README tells users to run Windows PowerShell 5.1,
+      # which reads a BOM-less file as ANSI and chokes on non-ASCII. Parse every script under 5.1.
+      - name: Parse-check all PowerShell scripts (Windows PowerShell 5.1)
         if: runner.os == 'Windows'
-        shell: pwsh
+        shell: powershell
+        run: |
+          $bad = 0
+          foreach ($f in @(git ls-files '*.ps1')) {
+            $errs = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $f).Path, [ref]$null, [ref]$errs)
+            if ($errs) {
+              $bad++
+              Write-Host "PARSE ERROR in ${f}:"
+              $errs | ForEach-Object { Write-Host "  $($_.Extent.StartLineNumber): $($_.Message)" }
+            }
+          }
+          if ($bad -gt 0) { exit 1 }
+
+      - name: ShellCheck bash scripts and git hook (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          git ls-files '*.sh' scripts/git-hooks/pre-commit | xargs shellcheck -S warning
+
+      - name: Test Global Installer (Windows PowerShell 5.1)
+        if: runner.os == 'Windows'
+        shell: powershell
         run: |
           .\install.ps1 -IncludeSuites
+          $dest = Join-Path $HOME ".gemini\config\skills"
+          $missing = @(@(Get-ChildItem skills -Directory) + @(Get-ChildItem suites -Directory | Get-ChildItem -Directory) |
+            Where-Object { -not (Test-Path (Join-Path $dest "$($_.Name)\SKILL.md")) })
+          if ($missing.Count -gt 0) { Write-Host "Not installed: $($missing.Name -join ', ')"; exit 1 }
+
+      - name: Test Global Installer (pwsh on Linux)
+        if: runner.os == 'Linux'
+        shell: pwsh
+        run: |
+          ./install.ps1 -IncludeSuites
 
       - name: Test Global Installer (Bash)
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          chmod +x ./install.sh ./install-suite.sh ./scripts/*.sh
+          rm -rf "$HOME/.gemini"
+          chmod +x ./install.sh
           ./install.sh --include-suites
-
+          for d in skills/*/ suites/*/*/; do
+            [ -f "$HOME/.gemini/config/skills/$(basename "$d")/SKILL.md" ] || { echo "Not installed: $d"; exit 1; }
+          done

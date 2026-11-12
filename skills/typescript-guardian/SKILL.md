@@ -9,6 +9,9 @@ description: >-
 
 This skill enforces strict, production-grade TypeScript engineering. When writing or refactoring TypeScript, you must adhere to the 4 phases below.
 
+> **Reference** (load on demand):
+> - [Google TypeScript Engineering Style Reference](./references/google_ts_style.md): Type system philosophy, nullability and optionals, and function and module boundaries.
+
 ---
 
 ## Phase 1: Environment & Tooling Discovery

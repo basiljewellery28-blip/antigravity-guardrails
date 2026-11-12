@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Universal dependency vulnerability auditor for Antigravity skills.
 .DESCRIPTION
@@ -14,6 +14,9 @@ param(
 $ErrorActionPreference = "Stop"
 
 Push-Location $ProjectPath
+# Windows PowerShell 5.1 turns any native stderr output into a terminating error under "Stop"
+# (even with 2>&1), which would abort the audit or be mistaken for "tool not installed".
+$ErrorActionPreference = "Continue"
 try {
     Write-Host "🔍 [Dependency Auditor] Inspecting package manifests in: $(Resolve-Path .)" -ForegroundColor Cyan
 
@@ -23,25 +26,28 @@ try {
     # 1. Node.js
     if (Test-Path "package.json") {
         $audited = $true
-        $cmd = ""
         if (Test-Path "pnpm-lock.yaml") {
-            $cmd = "pnpm audit --audit-level=high"
+            $tool = "pnpm"; $toolArgs = @("audit", "--audit-level=high")
         } elseif (Test-Path "yarn.lock") {
-            $cmd = "yarn audit --level high"
+            $tool = "yarn"; $toolArgs = @("audit", "--level", "high")
         } else {
-            $cmd = "npm audit --audit-level=high"
+            $tool = "npm"; $toolArgs = @("audit", "--audit-level=high")
         }
 
-        Write-Host "📦 Auditing Node.js dependencies ($cmd)..." -ForegroundColor Cyan
-        $output = Invoke-Expression $cmd 2>&1
-        $code = $LASTEXITCODE
-
-        if ($code -eq 0) {
-            Write-Host "✅ Node.js dependencies: ZERO High/Critical vulnerabilities!" -ForegroundColor Green
-        } else {
-            Write-Host "❌ Node.js vulnerabilities detected:" -ForegroundColor Red
-            Write-Host $output
+        Write-Host "📦 Auditing Node.js dependencies ($tool $($toolArgs -join ' '))..." -ForegroundColor Cyan
+        if (-not (Get-Command $tool -ErrorAction SilentlyContinue)) {
+            # A gate that could not run must not pass.
+            Write-Host "❌ $tool not found in PATH; Node.js dependencies were NOT audited." -ForegroundColor Red
             $hasVulnerability = $true
+        } else {
+            $output = & $tool @toolArgs 2>&1
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "✅ Node.js dependencies: ZERO High/Critical vulnerabilities!" -ForegroundColor Green
+            } else {
+                Write-Host "❌ Node.js vulnerabilities detected:" -ForegroundColor Red
+                Write-Host ($output | Out-String)
+                $hasVulnerability = $true
+            }
         }
     }
 
@@ -49,30 +55,48 @@ try {
     if ((Test-Path "pyproject.toml") -or (Test-Path "requirements.txt")) {
         $audited = $true
         Write-Host "📦 Auditing Python dependencies (pip-audit)..." -ForegroundColor Cyan
-        try {
-            $pyOutput = pip-audit 2>&1
+        if (-not (Get-Command pip-audit -ErrorAction SilentlyContinue)) {
+            Write-Host "❌ pip-audit not installed; Python dependencies were NOT audited. Install via 'pip install pip-audit'." -ForegroundColor Red
+            $hasVulnerability = $true
+        } else {
+            # Bare pip-audit audits the active environment, not the project's manifest.
+            if (Test-Path "requirements.txt") { $pyArgs = @("-r", "requirements.txt") } else { $pyArgs = @(".") }
+            $pyOutput = & pip-audit @pyArgs 2>&1
             if ($LASTEXITCODE -eq 0) {
                 Write-Host "✅ Python dependencies: Clean!" -ForegroundColor Green
             } else {
                 Write-Host "❌ Python dependencies vulnerability detected:" -ForegroundColor Red
-                Write-Host $pyOutput
+                Write-Host ($pyOutput | Out-String)
                 $hasVulnerability = $true
             }
-        } catch {
-            Write-Host "ℹ️ pip-audit not installed. Consider installing via 'pip install pip-audit'." -ForegroundColor Yellow
         }
     }
 
     # 3. .NET
-    $csproj = Get-ChildItem -Filter "*.csproj" -Recurse -Depth 2 -ErrorAction SilentlyContinue
+    $csproj = @(Get-ChildItem -Filter "*.csproj" -Recurse -Depth 2 -ErrorAction SilentlyContinue)
     if ($csproj.Count -gt 0) {
         $audited = $true
         Write-Host "📦 Auditing .NET packages (dotnet list package --vulnerable)..." -ForegroundColor Cyan
-        $dotnetOutput = dotnet list package --vulnerable --include-transitive 2>&1
-        if ($dotnetOutput -match "has no vulnerable packages") {
-            Write-Host "✅ .NET packages: ZERO known vulnerabilities!" -ForegroundColor Green
+        if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+            Write-Host "❌ dotnet not found in PATH; .NET packages were NOT audited." -ForegroundColor Red
+            $hasVulnerability = $true
         } else {
-            Write-Host $dotnetOutput
+            # dotnet exits 0 even when vulnerable packages exist, so the report text decides.
+            # Targeting each project also works when the .csproj is not in the current directory.
+            foreach ($proj in $csproj) {
+                $dotnetOutput = (& dotnet list $proj.FullName package --vulnerable --include-transitive 2>&1 | Out-String)
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Host "❌ $($proj.Name): dotnet could not complete the audit (restore the project first):" -ForegroundColor Red
+                    Write-Host $dotnetOutput
+                    $hasVulnerability = $true
+                } elseif ($dotnetOutput -match '(?m)^\s*>.*(High|Critical)') {
+                    Write-Host "❌ $($proj.Name): High/Critical vulnerable packages:" -ForegroundColor Red
+                    Write-Host $dotnetOutput
+                    $hasVulnerability = $true
+                } else {
+                    Write-Host "✅ $($proj.Name): ZERO High/Critical known vulnerabilities!" -ForegroundColor Green
+                }
+            }
         }
     }
 
@@ -80,17 +104,23 @@ try {
     if (Test-Path "Cargo.toml") {
         $audited = $true
         Write-Host "📦 Auditing Rust crates (cargo audit)..." -ForegroundColor Cyan
-        try {
-            $cargoOutput = cargo audit 2>&1
+        $haveCargoAudit = $false
+        if (Get-Command cargo -ErrorAction SilentlyContinue) {
+            $null = & cargo audit --version 2>&1
+            $haveCargoAudit = ($LASTEXITCODE -eq 0)
+        }
+        if (-not $haveCargoAudit) {
+            Write-Host "❌ cargo-audit not installed; Rust crates were NOT audited. Run 'cargo install cargo-audit'." -ForegroundColor Red
+            $hasVulnerability = $true
+        } else {
+            $cargoOutput = & cargo audit 2>&1
             if ($LASTEXITCODE -eq 0) {
                 Write-Host "✅ Rust crates: Clean!" -ForegroundColor Green
             } else {
                 Write-Host "❌ Rust crate vulnerabilities detected:" -ForegroundColor Red
-                Write-Host $cargoOutput
+                Write-Host ($cargoOutput | Out-String)
                 $hasVulnerability = $true
             }
-        } catch {
-            Write-Host "ℹ️ cargo audit not installed. Run 'cargo install cargo-audit'." -ForegroundColor Yellow
         }
     }
 
