@@ -25,13 +25,19 @@ function New-Fixture {
     return $dir
 }
 
+# Repo-relative by default; absolute for a script copied out on its own into a fixture.
+function Resolve-GateScript([string]$Script) {
+    if ([System.IO.Path]::IsPathRooted($Script)) { return $Script }
+    return Join-Path $repo $Script
+}
+
 # Runs a gate script in a fresh process with $WorkDir as its cwd.
 function Invoke-Gate([string]$Script, [string]$WorkDir, [string[]]$GateArgs = @()) {
     # Continue: under Stop, 5.1 would turn a gate's stderr line into a runner crash instead of a result.
     $ErrorActionPreference = "Continue"
     Push-Location $WorkDir
     try {
-        $output = & $psHost -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo $Script) @GateArgs 2>&1 | Out-String
+        $output = & $psHost -NoProfile -ExecutionPolicy Bypass -File (Resolve-GateScript $Script) @GateArgs 2>&1 | Out-String
         return [PSCustomObject]@{ ExitCode = $LASTEXITCODE; Output = $output }
     } finally {
         Pop-Location
@@ -133,7 +139,7 @@ function Invoke-BashGate([string]$Script, [string]$WorkDir, [string[]]$GateArgs 
     $ErrorActionPreference = "Continue"
     Push-Location $WorkDir
     try {
-        $output = & $bash (Join-Path $repo $Script) @GateArgs 2>&1 | Out-String
+        $output = & $bash (Resolve-GateScript $Script) @GateArgs 2>&1 | Out-String
         return [PSCustomObject]@{ ExitCode = $LASTEXITCODE; Output = $output }
     } finally {
         Pop-Location
@@ -195,6 +201,17 @@ Write-FixtureFile (Join-Path $proj "src/clean.js") $cleanJs
 Assert-GatePass "SAST scanner passes look-alike code" `
     (Invoke-Gate "skills/owasp-secure-coding/scripts/verify_sast_patterns.ps1" $proj @("-ProjectPath", $proj))
 
+# Five levels of 4-space indentation exceeds the gate's default 16-space limit.
+$proj = New-Fixture
+Write-FixtureFile (Join-Path $proj "src/deep.js") ("function f() {`n" + (" " * 20) + "return 1;`n}`n")
+Assert-GateFailure "complexity gate blocks deeply nested code" `
+    (Invoke-Gate "skills/code-simplification/scripts/verify_cognitive_complexity.ps1" $proj @("-ProjectPath", $proj)) `
+    "deep\.js"
+$proj = New-Fixture
+Write-FixtureFile (Join-Path $proj "src/flat.js") "function f() {`n    return 1;`n}`n"
+Assert-GatePass "complexity gate passes shallow code" `
+    (Invoke-Gate "skills/code-simplification/scripts/verify_cognitive_complexity.ps1" $proj @("-ProjectPath", $proj))
+
 # --- .ps1 / .sh parity: both twins must reach the same verdict on the same fixture -----------------
 $slopDir = New-Fixture
 Write-FixtureFile (Join-Path $slopDir "src/slop.ts") "try { run(); } catch (e) {}`n"
@@ -234,6 +251,46 @@ Assert-GateFailure "circuit breaker .sh trips on a 2MB log over a 1MB limit" `
 Assert-GatePass "circuit breaker .ps1 passes small logs" `
     (Invoke-Gate "$breaker.ps1" $smallLogDir @("-TargetDirectory", $smallLogDir, "-MaxLogSizeMb", "1"))
 Assert-GatePass "circuit breaker .sh passes small logs" (Invoke-BashGate "$breaker.sh" $smallLogDir @(".", "1"))
+
+$bigAssetDir = New-Fixture
+[System.IO.File]::WriteAllBytes((Join-Path (New-Item -ItemType Directory -Path (Join-Path $bigAssetDir "dist")) "big.js"), (New-Object byte[] (600KB)))
+$smallAssetDir = New-Fixture
+Write-FixtureFile (Join-Path $smallAssetDir "dist/small.js") "console.log(1);`n"
+$perf = "skills/performance-optimization/scripts/verify_performance"
+Assert-GateFailure "performance .ps1 rejects a 600KB asset over the 512KB budget" (Invoke-Gate "$perf.ps1" $bigAssetDir) "big\.js"
+Assert-GateFailure "performance .sh rejects a 600KB asset over the 512KB budget" (Invoke-BashGate "$perf.sh" $bigAssetDir) "big\.js"
+Assert-GatePass "performance .ps1 passes a small asset" (Invoke-Gate "$perf.ps1" $smallAssetDir)
+Assert-GatePass "performance .sh passes a small asset" (Invoke-BashGate "$perf.sh" $smallAssetDir)
+
+# Nothing to verify: no specs and nothing listening (port 9 is the discard port, normally closed).
+$emptyDir = New-Fixture
+$browser = "skills/browser-testing-with-devtools/scripts/verify_browser_suite"
+Assert-GateFailure "browser .ps1 fails with no specs and an unreachable URL" `
+    (Invoke-Gate "$browser.ps1" $emptyDir @("-Url", "http://127.0.0.1:9")) "nothing could be verified"
+Assert-GateFailure "browser .sh fails with no specs and an unreachable URL" `
+    (Invoke-BashGate "$browser.sh" $emptyDir @("--url", "http://127.0.0.1:9")) "nothing could be verified"
+
+$leakyRelease = New-Fixture
+Write-FixtureFile (Join-Path $leakyRelease "package.json") "{}`n"
+Write-FixtureFile (Join-Path $leakyRelease "src/keys.ts") "export const awsKey = `"$awsKey`";`n"
+$cleanRelease = New-Fixture
+Write-FixtureFile (Join-Path $cleanRelease "package.json") "{}`n"
+$release = "suites/founder-suite/ship-release/scripts/verify_release_readiness"
+Assert-GateFailure "release .ps1 blocks a project with a leaked key" `
+    (Invoke-Gate "$release.ps1" $leakyRelease @("-TargetDirectory", $leakyRelease)) "BLOCKED"
+Assert-GateFailure "release .sh blocks a project with a leaked key" `
+    (Invoke-BashGate "$release.sh" $leakyRelease @($leakyRelease)) "BLOCKED"
+Assert-GatePass "release .ps1 passes a clean project" (Invoke-Gate "$release.ps1" $cleanRelease @("-TargetDirectory", $cleanRelease))
+Assert-GatePass "release .sh passes a clean project" (Invoke-BashGate "$release.sh" $cleanRelease @($cleanRelease))
+
+# Copied out on their own, the release scripts cannot find the secret scanner: that must block, not skip.
+$lonelyScripts = Join-Path (New-Fixture) "ship-release/scripts"
+New-Item -ItemType Directory -Force -Path $lonelyScripts | Out-Null
+Copy-Item (Join-Path $repo "$release.ps1"), (Join-Path $repo "$release.sh") $lonelyScripts
+Assert-GateFailure "release .ps1 blocks when the secret scanner is missing" `
+    (Invoke-Gate (Join-Path $lonelyScripts "verify_release_readiness.ps1") $cleanRelease @("-TargetDirectory", $cleanRelease)) "BLOCKED"
+Assert-GateFailure "release .sh blocks when the secret scanner is missing" `
+    (Invoke-BashGate (Join-Path $lonelyScripts "verify_release_readiness.sh") $cleanRelease @($cleanRelease)) "BLOCKED"
 
 foreach ($f in $fixtures) { Remove-Item -LiteralPath $f -Recurse -Force -ErrorAction SilentlyContinue }
 

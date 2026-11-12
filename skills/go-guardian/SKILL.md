@@ -76,6 +76,8 @@ You must run automated static checks and the race detector before reporting comp
    ```powershell
    powershell -File ./skills/go-guardian/scripts/verify_go.ps1
    ```
+
+   The script runs `go test -race`, which needs cgo and a C compiler. Without one (common on Windows) the gate exits non-zero and says so; install gcc (e.g. MSYS2 mingw-w64) or run the gate in WSL/Linux.
    Or run the toolchain directly:
    ```bash
    go vet ./...

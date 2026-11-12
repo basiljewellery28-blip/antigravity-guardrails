@@ -34,6 +34,8 @@ When auditing or modifying dependencies, run the universal audit runner:
 powershell -File ./skills/security-dependency-auditor/scripts/audit_deps.ps1
 ```
 
+The script exits non-zero when the audit tool for a detected ecosystem (npm/pnpm/yarn, pip-audit, dotnet, cargo-audit) is not installed, because unaudited dependencies are not a pass.
+
 Supported Package Managers:
 - **Node.js**: `pnpm audit`, `yarn audit`, `npm audit --audit-level=high`
 - **Python**: `pip-audit`, `safety check`
