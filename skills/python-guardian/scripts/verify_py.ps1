@@ -22,17 +22,17 @@ try {
     if (-not (Get-Command python -ErrorAction SilentlyContinue) -and (Get-Command python3 -ErrorAction SilentlyContinue)) {
         $pyExe = "python3"
     }
-    $pyPre = @()
+    $pyRunArgs = @()
 
     if (Test-Path "uv.lock") {
         Write-Host "📦 Detected uv environment" -ForegroundColor Green
-        $pyExe = "uv"; $pyPre = @("run", "python")
+        $pyExe = "uv"; $pyRunArgs = @("run", "python")
     } elseif (Test-Path "poetry.lock") {
         Write-Host "📦 Detected Poetry environment" -ForegroundColor Green
-        $pyExe = "poetry"; $pyPre = @("run", "python")
+        $pyExe = "poetry"; $pyRunArgs = @("run", "python")
     } elseif (Test-Path "Pipfile.lock") {
         Write-Host "📦 Detected Pipenv environment" -ForegroundColor Green
-        $pyExe = "pipenv"; $pyPre = @("run", "python")
+        $pyExe = "pipenv"; $pyRunArgs = @("run", "python")
     } elseif (Test-Path ".venv\Scripts\python.exe") {
         $pyExe = (Resolve-Path ".venv\Scripts\python.exe").Path
         Write-Host "📦 Detected local .venv" -ForegroundColor Green
@@ -57,12 +57,14 @@ try {
 
     # Step 1: Type Checking (mypy)
     Write-Host "🧪 Running static type analysis..." -ForegroundColor Cyan
-    $typeOutput = & $pyExe @pyPre -m mypy . --ignore-missing-imports 2>&1
+    $typeOutput = & $pyExe @pyRunArgs -m mypy . --ignore-missing-imports 2>&1
     $typeExit = $LASTEXITCODE
     if ($typeExit -eq 0) {
         Write-Host "✅ Static type analysis passed!" -ForegroundColor Green
     } elseif (($typeOutput | ForEach-Object { "$_" }) -match "No module named mypy") {
-        Write-Host "ℹ️ mypy not installed; skipping static type analysis (NOT verified)." -ForegroundColor Yellow
+        # Type checking is a required step of this gate (SKILL.md); skipping it would be a false pass.
+        Write-Host "❌ mypy not installed; static type analysis NOT verified. Install it (e.g. 'pip install mypy') and re-run." -ForegroundColor Red
+        exit 1
     } else {
         Write-Host "❌ Type issues detected:" -ForegroundColor Red
         $typeOutput | ForEach-Object { "$_" } | Write-Host
@@ -71,11 +73,11 @@ try {
 
     # Step 2: Test Suite (pytest, falling back to unittest only if pytest is not installed)
     Write-Host "🧪 Running test suite..." -ForegroundColor Cyan
-    $testOutput = & $pyExe @pyPre -m pytest -q 2>&1
+    $testOutput = & $pyExe @pyRunArgs -m pytest -q 2>&1
     $testExit = $LASTEXITCODE
     if ($testExit -ne 0 -and (($testOutput | ForEach-Object { "$_" }) -match "No module named pytest")) {
         Write-Host "ℹ️ pytest not installed, falling back to unittest discovery..." -ForegroundColor Yellow
-        $testOutput = & $pyExe @pyPre -m unittest discover -s . -p "*test*.py" 2>&1
+        $testOutput = & $pyExe @pyRunArgs -m unittest discover -s . -p "*test*.py" 2>&1
         $testExit = $LASTEXITCODE
     }
 

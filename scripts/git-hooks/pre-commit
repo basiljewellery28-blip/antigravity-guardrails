@@ -11,8 +11,10 @@ if command -v pwsh >/dev/null 2>&1; then
 elif command -v powershell >/dev/null 2>&1; then
     POWERSHELL="powershell"
 else
-    echo "⚠️ PowerShell not located, skipping automated pre-commit script check."
-    exit 0
+    # Failing closed: a security hook that passes when it can't run gives false confidence.
+    echo "❌ [Antigravity Hook] PowerShell not located (install pwsh); nothing was checked."
+    echo "   To commit anyway, bypass deliberately with: git commit --no-verify"
+    exit 1
 fi
 
 # Locate Secret Sentinel script (local or global)
@@ -57,8 +59,9 @@ fi
 
 # Don't claim a clean pass when nothing ran (scanner scripts not installed).
 if [ "$RAN" -eq 0 ]; then
-    echo "⚠️ [Antigravity Hook] No scanner scripts found (run install.ps1 / install.sh); nothing was checked."
-    exit 0
+    echo "❌ [Antigravity Hook] No scanner scripts found (run install.ps1 / install.sh); nothing was checked."
+    echo "   To commit anyway, bypass deliberately with: git commit --no-verify"
+    exit 1
 fi
 
 echo "✅ [Antigravity Hook] All security pre-commit checks passed cleanly!"

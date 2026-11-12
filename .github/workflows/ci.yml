@@ -64,6 +64,16 @@ jobs:
         run: |
           git ls-files '*.sh' scripts/git-hooks/pre-commit | xargs shellcheck -S warning
 
+      # Regression tests: gates must fail when they could not verify anything. Both Windows hosts.
+      - name: Gate tests (Windows PowerShell 5.1)
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: .\tests\run_tests.ps1
+
+      - name: Gate tests (pwsh)
+        shell: pwsh
+        run: ./tests/run_tests.ps1
+
       - name: Test Global Installer (Windows PowerShell 5.1)
         if: runner.os == 'Windows'
         shell: powershell

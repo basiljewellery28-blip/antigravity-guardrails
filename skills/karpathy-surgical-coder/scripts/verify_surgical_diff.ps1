@@ -23,8 +23,9 @@ if (Get-Command git -ErrorAction SilentlyContinue) {
     $inRepo = ($LASTEXITCODE -eq 0)
 }
 if (-not $inRepo) {
-    Write-Host "ℹ️ Not a git repository. Skipping git diff inspection." -ForegroundColor Yellow
-    exit 0
+    # No diff to inspect means nothing was verified; a pass here would be a false green.
+    Write-Host "❌ Not a git repository (or git not installed); surgical diff NOT verified." -ForegroundColor Red
+    exit 1
 }
 
 $statusOutput = git status --porcelain 2>$null

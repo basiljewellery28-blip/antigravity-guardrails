@@ -23,7 +23,7 @@ $root = (Resolve-Path $ProjectPath).Path
 # Match whole path segments relative to the project root: a bare 'bin' also matched "cabinet-api",
 # silently excluding every file and reporting a false "clean".
 $files = Get-ChildItem -Path $ProjectPath -Include $sourceExtensions -Recurse -File -Exclude "clean_debug_tags.ps1" |
-    Where-Object { $_.FullName.Substring($root.Length) -notmatch '[\\/](node_modules|\.git|obj|bin|dist|vendor)[\\/]' }
+    Where-Object { $_.FullName.Substring($root.Length) -notmatch '[\\/](node_modules|\.git|obj|bin|dist|vendor|research)[\\/]' }
 
 foreach ($file in $files) {
     $bytes = [System.IO.File]::ReadAllBytes($file.FullName)
