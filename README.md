@@ -148,6 +148,8 @@ powershell -ExecutionPolicy Bypass -File .\setup-hooks.ps1 -TargetDirectory "C:\
 ./setup-hooks.sh /path/to/your-project
 ```
 
+The hook blocks the commit when PowerShell or the scanner scripts cannot be found; `git commit --no-verify` bypasses it deliberately.
+
 ---
 
 ## 🤝 Standing on the Shoulders of Giants
